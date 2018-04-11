@@ -1,7 +1,6 @@
 import express from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
-import routes from './routes'
 
 if (!process.env.PORT) {
   require('dotenv').config()
@@ -33,4 +32,4 @@ app.use(cors({
 
 app.use(bodyParser.json())
 
-routes(app)
+app.get('/', (req, res) => res.send('Cobalt API'))
