@@ -4,12 +4,6 @@ import cors from "cors";
 
 import mongoose from "mongoose";
 
-const DATABASE_CONNECTION = "mongodb://database/cobalt";
-
-mongoose
-  .connect(DATABASE_CONNECTION)
-  .then(() => console.log("connected to db"));
-
 if (!process.env.PORT) {
   require("dotenv").config();
 }
@@ -24,6 +18,14 @@ if (!process.env.PORT) {
     `[api][header] Access-Control-Allow-Origin: ${process.env.ALLOW_ORIGIN}`
   );
 }
+
+const DATABASE_CONNECTION = "mongodb://database/cobalt";
+
+console.log(DATABASE_CONNECTION);
+
+mongoose
+  .connect(DATABASE_CONNECTION)
+  .then(() => console.log("connected to db"));
 
 const app = express();
 const port = process.env.PORT || 7770;

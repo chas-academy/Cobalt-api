@@ -11,19 +11,13 @@ services:
     ports:
       - 7770:7770
     environment:
-      # - POSTGRES_HOST=database
+      - MONGODB_HOST=database
     depends_on:
-      # - database
+      - database
     env_file:
       - .env
-  # database:
-    # container_name: postgres_db
-    # image: postgres:9.6
-    # volumes:
-      # - database:/var/lib/postgresql/data
-    # ports:
-      # - 7772:5432
-    # env_file:
-      # - .env
-volumes:
   database:
+    container_name: mongo_db
+    image: mongo
+    env_file:
+      - .env
