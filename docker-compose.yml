@@ -10,14 +10,19 @@ services:
       - ./:/home/node/app
     ports:
       - 7770:7770
-    environment:
-      - MONGODB_HOST=database
     depends_on:
       - database
     env_file:
       - .env
   database:
     container_name: mongo_db
-    image: mongo
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    volumes:
+      - data:/data/db
     env_file:
       - .env
+
+volumes:
+    data:

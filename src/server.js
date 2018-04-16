@@ -19,13 +19,15 @@ if (!process.env.PORT) {
   );
 }
 
-const DATABASE_CONNECTION = "mongodb://database/cobalt";
+const DATABASE_CONNECTION = `mongodb://${
+  process.env.MONGO_INITDB_ROOT_USERNAME
+}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@${
+  process.env.MONGO_INITDB_DATABASE
+}`;
 
-console.log(DATABASE_CONNECTION);
+mongoose.connect(DATABASE_CONNECTION);
 
-mongoose
-  .connect(DATABASE_CONNECTION)
-  .then(() => console.log("connected to db"));
+const db = mongoose.connection;
 
 const app = express();
 const port = process.env.PORT || 7770;
