@@ -4,39 +4,19 @@ import cors from "cors";
 
 import mongoose from "mongoose";
 
+const User = require("./models/User");
+
+const passport = require("passport");
+require("./services/passport");
+
 if (!process.env.PORT) {
   require("dotenv").config();
 }
 
-if (!process.env.PORT) {
-  console.log("[api][port] 7770 set as default");
-  console.log("[api][header] Access-Control-Allow-Origin: * set as default");
-} else {
-  console.log("[api][node] Loaded ENV vars from .env file");
-  console.log(`[api][port] ${process.env.PORT}`);
-  console.log(
-    `[api][header] Access-Control-Allow-Origin: ${process.env.ALLOW_ORIGIN}`
-  );
-}
-
-const DATABASE_CONNECTION = `mongodb://${
-  process.env.MONGO_INITDB_ROOT_USERNAME
-}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@${
-  process.env.MONGO_INITDB_DATABASE
-}`;
-
-mongoose.connect(DATABASE_CONNECTION);
-
-const db = mongoose.connection;
-
+/* App */
 const app = express();
-const port = process.env.PORT || 7770;
-const allowOrigin = process.env.ALLOW_ORIGIN || "*";
 
-app.listen(port, () => {
-  console.log("[api][listen] http://localhost:" + port);
-});
-
+/* Middleware */
 app.use(
   cors({
     origin: process.env.ALLOW_ORIGIN,
@@ -47,5 +27,32 @@ app.use(
 );
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(passport.initialize());
+app.use(passport.session());
 
+/* Database */
+const DATABASE_CONNECTION = `mongodb://${
+  process.env.MONGO_INITDB_ROOT_USERNAME
+}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@${
+  process.env.MONGO_INITDB_DATABASE
+}`;
+
+mongoose.connect(DATABASE_CONNECTION);
+
+const db = mongoose.connection;
+
+/* Routes */
 app.get("/", (req, res) => res.send("Cobalt API"));
+app.post("/auth", passport.authenticate("local"), function(req, res) {
+  console.log(req);
+  res.json(200, {
+    user: req.user
+  });
+});
+
+/* Start */
+const port = process.env.PORT || 7770;
+app.listen(port, () => {
+  console.log("[api][listen] http://localhost:" + port);
+});
