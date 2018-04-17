@@ -3,6 +3,17 @@ const LocalStrategy = require("passport-local").Strategy;
 
 const dbActions = require("../db/actions");
 
+passport.serializeUser(function(user, done) {
+  done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+  dbActions
+    .getUserFromId(id)
+    .then(user => done(null, user))
+    .catch(err => done(err, null));
+});
+
 passport.use(
   new LocalStrategy(
     {
@@ -17,6 +28,15 @@ passport.use(
           if (!user) {
             return done(null, false, { message: "Incorrect username." });
           }
+
+          /*
+          TODO: Password-handling
+
+          if (!user.validPassword(password)) {
+            return done(null, false, { message: "Incorrect password." });
+          }
+          
+          */
 
           return done(null, user);
         })

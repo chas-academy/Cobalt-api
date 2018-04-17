@@ -6,4 +6,10 @@ const getUserFromEmail = email => {
     .catch(err => err);
 };
 
-export { getUserFromEmail };
+const getUserFromId = id => {
+  return User.findById(id)
+    .then(user => user)
+    .catch(err => err);
+};
+
+export { getUserFromEmail, getUserFromId };

@@ -1,4 +1,5 @@
 import express from "express";
+import session from "express-session";
 import bodyParser from "body-parser";
 import cors from "cors";
 
@@ -28,6 +29,7 @@ app.use(
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(session({ secret: "cats" }));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -45,7 +47,6 @@ const db = mongoose.connection;
 /* Routes */
 app.get("/", (req, res) => res.send("Cobalt API"));
 app.post("/auth", passport.authenticate("local"), function(req, res) {
-  console.log(req);
   res.json(200, {
     user: req.user
   });
