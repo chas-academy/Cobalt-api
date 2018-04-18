@@ -1,11 +1,13 @@
 const User = require("../models/User");
 
+/* TODO: Test if this actually throws an error */
 const getUserFromEmail = email => {
   return User.findOne({ email })
     .then(user => user)
     .catch(err => err);
 };
 
+/* TODO: Test if this actually throws an error */
 const getUserFromId = id => {
   return User.findById(id)
     .then(user => user)
