@@ -12,4 +12,23 @@ const getUserFromId = id => {
     .catch(err => err);
 };
 
-export { getUserFromEmail, getUserFromId };
+const createUser = userData => {
+  return new Promise((resolve, reject) => {
+    return User.create(
+      {
+        email: userData.email,
+        name: userData.name,
+        password: userData.password
+      },
+      (err, user) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(user);
+      }
+    );
+  });
+};
+
+export { getUserFromEmail, getUserFromId, createUser };
