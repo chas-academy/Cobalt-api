@@ -1,10 +1,11 @@
 import express from "express";
+import session from "express-session";
 import bodyParser from "body-parser";
 import cors from "cors";
 
 import mongoose from "mongoose";
 
-const User = require("./models/User");
+const dbActions = require("./db/actions");
 
 const passport = require("passport");
 require("./services/passport");
@@ -28,6 +29,7 @@ app.use(
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(session({ secret: "cats" }));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -44,11 +46,34 @@ const db = mongoose.connection;
 
 /* Routes */
 app.get("/", (req, res) => res.send("Cobalt API"));
-app.post("/auth", passport.authenticate("local"), function(req, res) {
-  console.log(req);
+app.post("/auth", passport.authenticate("local"), (req, res) => {
   res.json(200, {
     user: req.user
   });
+});
+
+app.post("/user", (req, res) => {
+  const { email, name, password } = req.body;
+  const userData = {
+    email,
+    name,
+    password
+  };
+
+  dbActions
+    .createUser(userData)
+    .then(user =>
+      res.status(200).json({
+        success: true,
+        user: user
+      })
+    )
+    .catch(err =>
+      res.status(500).json({
+        success: false,
+        message: err.message
+      })
+    );
 });
 
 /* Start */
