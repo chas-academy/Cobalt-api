@@ -90,6 +90,7 @@ let rooms = {};
 
 /* Session URL */
 const getNewSession = sessionId => io.of(sessionId);
+const sessionExists = sessionId => rooms.hasOwnProperty(sessionId);
 
 app.post("/session", (req, res) => {
   const sessionId = shortid.generate();
@@ -106,7 +107,7 @@ app.post("/session", (req, res) => {
 app.get("/:sessionId", (req, res) => {
   const { sessionId } = req.params;
 
-  if (!rooms[sessionId]) {
+  if (!sessionExists(sessionId)) {
     return res.status(404).json({
       success: false,
       message: "No session found for that URL."
@@ -123,13 +124,20 @@ app.get("/:sessionId", (req, res) => {
 io.on("connection", socket => {
   /* Client emits what session they'd like to join */
   socket.on("session", room => {
+    if (!sessionExists(room)) {
+      socket.disconnect();
+    }
     /* Add the client to this room */
     socket.join(room);
+    /* Welcome message */
+    socket.emit("message", {
+      message: "Welcome to session " + room
+    });
   });
 });
 
 /* Start */
 const port = process.env.PORT || 7770;
-app.listen(port, () => {
+server.listen(port, () => {
   console.log("[api][listen] http://localhost:" + port);
 });
