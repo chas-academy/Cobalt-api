@@ -119,6 +119,15 @@ app.get("/:sessionId", (req, res) => {
   });
 });
 
+/* General client connection */
+io.on("connection", socket => {
+  /* Client emits what session they'd like to join */
+  socket.on("session", room => {
+    /* Add the client to this room */
+    socket.join(room);
+  });
+});
+
 /* Start */
 const port = process.env.PORT || 7770;
 app.listen(port, () => {
