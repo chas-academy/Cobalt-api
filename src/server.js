@@ -3,6 +3,11 @@ import session from "express-session";
 import bodyParser from "body-parser";
 import cors from "cors";
 
+import http from "http";
+import socketIO from "socket.io";
+
+import shortid from "shortid";
+
 import mongoose from "mongoose";
 
 const dbActions = require("./db/actions");
@@ -16,6 +21,8 @@ if (!process.env.PORT) {
 
 /* App */
 const app = express();
+const server = http.Server(app);
+const io = socketIO(server);
 
 /* Middleware */
 app.use(
@@ -46,6 +53,8 @@ const db = mongoose.connection;
 
 /* Routes */
 app.get("/", (req, res) => res.send("Cobalt API"));
+
+/* Auth */
 app.post("/auth", passport.authenticate("local"), (req, res) => {
   res.json(200, {
     user: req.user
@@ -76,8 +85,59 @@ app.post("/user", (req, res) => {
     );
 });
 
+/* Socket IO */
+let rooms = {};
+
+/* Session URL */
+const getNewSession = sessionId => io.of(sessionId);
+const sessionExists = sessionId => rooms.hasOwnProperty(sessionId);
+
+app.post("/session", (req, res) => {
+  const sessionId = shortid.generate();
+
+  rooms[sessionId] = getNewSession(sessionId);
+
+  res.status(200).json({
+    success: true,
+    session: sessionId
+  });
+});
+
+/* Session Passthrough Route */
+app.get("/:sessionId", (req, res) => {
+  const { sessionId } = req.params;
+
+  if (!sessionExists(sessionId)) {
+    return res.status(404).json({
+      success: false,
+      message: "No session found for that URL."
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    session: sessionId
+  });
+});
+
+/* General client connection */
+io.on("connection", socket => {
+  /* Client emits what session they'd like to join */
+  socket.on("session", room => {
+    if (!sessionExists(room)) {
+      socket.disconnect();
+    }
+    /* Add the client to this room */
+    socket.join(room);
+    /* Welcome message */
+    socket.emit("message", {
+      message: "Welcome to session " + room
+    });
+  });
+});
+
 /* Start */
 const port = process.env.PORT || 7770;
-app.listen(port, () => {
+server.listen(port, () => {
   console.log("[api][listen] http://localhost:" + port);
 });
