@@ -11,18 +11,5 @@ services:
     labels:
       traefik.enable: "true"
       traefik.frontend.rule: "Host:TRAEFIK_ENV.chas.school"
-    environment:
-      - MONGODB_HOST=DB_CONTAINER_NAME
-    depends_on:
-      - DB_CONTAINER_NAME
     env_file:
       - .env
-  DB_CONTAINER_NAME:
-    volumes:
-      - API_CONTAINER_NAME:/data/db
-    container_name: DB_CONTAINER_NAME
-    image: mongo
-    env_file:
-      - .env
-volumes:
-  API_CONTAINER_NAME:
