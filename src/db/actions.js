@@ -1,8 +1,8 @@
 const User = require("../models/User");
 
 /* TODO: Test if this actually throws an error */
-const getUserFromEmail = email => {
-  return User.findOne({ email })
+const getUserFromEmail = (email, withPassword = false) => {
+  return User.findOne({ email }, { password: withPassword })
     .then(user => user)
     .catch(err => err);
 };

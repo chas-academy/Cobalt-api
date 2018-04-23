@@ -40,6 +40,17 @@ app.use(session({ secret: "cats" }));
 app.use(passport.initialize());
 app.use(passport.session());
 
+const requireLogin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: "Needs authentication."
+    });
+  }
+
+  return next();
+};
+
 /* Database */
 const DATABASE_CONNECTION = `mongodb://${
   process.env.MONGO_INITDB_ROOT_USERNAME
@@ -91,11 +102,28 @@ let rooms = {};
 /* Session URL */
 const getNewSession = sessionId => io.of(sessionId);
 const sessionExists = sessionId => rooms.hasOwnProperty(sessionId);
+const getNumOfAttendees = sessionId =>
+  io.sockets.adapter.rooms[sessionId].length;
 
-app.post("/session", (req, res) => {
+const asyncPipe = (...fns) => x => fns.reduce(async (y, f) => f(await y), x);
+
+const canCreateSession = sessionId => asyncPipe(!sessionExists, getNewSession);
+
+app.post("/session", requireLogin, (req, res) => {
   const sessionId = shortid.generate();
 
-  rooms[sessionId] = getNewSession(sessionId);
+  rooms[sessionId] = {
+    session: getNewSession(sessionId),
+    presentation: {
+      owner: req.user.name,
+      description: "AI in the future.",
+      attendees: 0,
+      engagement: {
+        threshold: 3.5,
+        description: "Faster, slower"
+      }
+    }
+  };
 
   res.status(200).json({
     success: true,
@@ -123,16 +151,26 @@ app.get("/:sessionId", (req, res) => {
 /* General client connection */
 io.on("connection", socket => {
   /* Client emits what session they'd like to join */
-  socket.on("session", room => {
+  socket.on("joinSession", room => {
     if (!sessionExists(room)) {
       socket.disconnect();
+      return;
     }
     /* Add the client to this room */
     socket.join(room);
+    rooms[room].presentation.attendees = getNumOfAttendees(room);
     /* Welcome message */
-    socket.emit("message", {
-      message: "Welcome to session " + room
+    socket.emit("sessionUpdated", {
+      message: rooms[room].presentation
     });
+  });
+
+  // socket.on("attendeePayload", payload => {
+  //   io.sockets.in(payload.session).emit("sessionUpdated", payload);
+  // });
+
+  socket.on("presenterPayload", payload => {
+    io.sockets.in(payload.session).emit("sessionUpdated", payload);
   });
 });
 
