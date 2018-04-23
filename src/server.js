@@ -41,9 +41,11 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 /* Database */
+const decoded_password = encodeURIcomponent(process.env.MONGO_INITDB_ROOT_PASSWORD)
+console.log(decoded_password)
 const DATABASE_CONNECTION = `mongodb://${
   process.env.MONGO_INITDB_ROOT_USERNAME
-}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@${
+}:${decoded_password}@${
   process.env.MONGO_INITDB_DATABASE
 }`;
 
