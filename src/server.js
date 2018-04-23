@@ -43,15 +43,15 @@ app.use(passport.session());
 /* Database */
 const decoded_password = encodeURIComponent(process.env.MONGO_INITDB_ROOT_PASSWORD)
 console.log(decoded_password)
-const DATABASE_CONNECTION = `mongodb://${
-  process.env.MONGO_INITDB_ROOT_USERNAME
-}:${decoded_password}@${
-  process.env.MONGO_INITDB_DATABASE
-}`;
+// const DATABASE_CONNECTION = `mongodb://${
+//   process.env.MONGO_INITDB_ROOT_USERNAME
+// }:${decoded_password}@${
+//   process.env.MONGO_INITDB_DATABASE
+// }`;
 
-mongoose.connect(DATABASE_CONNECTION);
+// mongoose.connect(DATABASE_CONNECTION);
 
-const db = mongoose.connection;
+// const db = mongoose.connection;
 
 /* Routes */
 app.get("/", (req, res) => res.send("Cobalt API"));
