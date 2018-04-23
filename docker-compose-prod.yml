@@ -20,7 +20,7 @@ services:
   DB_CONTAINER_NAME:
     volumes:
       - API_CONTAINER_NAME:/data/db
-    container_name: mongo_db
+    container_name: DB_CONTAINER_NAME
     image: mongo
     env_file:
       - .env
