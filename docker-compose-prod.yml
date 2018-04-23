@@ -25,4 +25,4 @@ services:
     env_file:
       - .env
 volumes:
-  cobalt_db_dev:
+  API_CONTAINER_NAME:
