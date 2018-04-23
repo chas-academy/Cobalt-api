@@ -1,0 +1,28 @@
+version: '3.5'
+services:
+  API_CONTAINER_NAME:
+    container_name: API_CONTAINER_NAME
+    build: .
+    image: API_CONTAINER_NAME
+    user: node
+    working_dir: /home/node/app
+    volumes:
+      - ./:/home/node/app
+    labels:
+      traefik.enable: "true"
+      traefik.frontend.rule: "Host:cobalt-dev-api.chas.school"
+    environment:
+      - MONGODB_HOST=DB_CONTAINER_NAME
+    depends_on:
+      - DB_CONTAINER_NAME
+    env_file:
+      - .env
+  DB_CONTAINER_NAME:
+    volumes:
+      - API_CONTAINER_NAME:/data/db
+    container_name: mongo_db
+    image: mongo
+    env_file:
+      - .env
+volumes:
+  cobalt_db_dev:
