@@ -1,6 +1,6 @@
 {
   "name":"cobalt_express_api_dev",
-  "domain": "cobalt-api-dev.chas.school",
+  "domain": "TRAEFIK_ENV.chas.school",
   "project": "cobalt-dev",
   "template": "docker-compose"
 }

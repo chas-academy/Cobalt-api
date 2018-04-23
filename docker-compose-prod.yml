@@ -10,7 +10,7 @@ services:
       - ./:/home/node/app
     labels:
       traefik.enable: "true"
-      traefik.frontend.rule: "Host:cobalt-dev-api.chas.school"
+      traefik.frontend.rule: "Host:TRAEFIK_ENV.chas.school"
     environment:
       - MONGODB_HOST=DB_CONTAINER_NAME
     depends_on:
