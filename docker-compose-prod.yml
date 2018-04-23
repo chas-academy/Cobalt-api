@@ -20,9 +20,13 @@ services:
   DB_CONTAINER_NAME:
     volumes:
       - API_CONTAINER_NAME:/data/db
-    container_name: mongo_db
+    container_name: DB_CONTAINER_NAME
     image: mongo
     env_file:
       - .env
 volumes:
+<<<<<<< HEAD
   API_CONTAINER_NAME:
+=======
+  cobalt_db_dev:
+>>>>>>> ddeae9fa8306d6a011be1e02fe8a082f69560164
