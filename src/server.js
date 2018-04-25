@@ -165,9 +165,9 @@ io.on("connection", socket => {
     });
   });
 
-  // socket.on("attendeePayload", payload => {
-  //   io.sockets.in(payload.session).emit("sessionUpdated", payload);
-  // });
+  socket.on("attendeePayload", payload => {
+    io.sockets.in(payload.session).emit("sessionUpdated", payload);
+  });
 
   socket.on("presenterPayload", payload => {
     io.sockets.in(payload.session).emit("sessionUpdated", payload);
