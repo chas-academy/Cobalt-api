@@ -1,8 +1,18 @@
+/* DB */
+import mongoose from "mongoose";
+
+import { DATABASE_CONNECTION } from "../config/config";
+
+mongoose.connect(DATABASE_CONNECTION);
+const db = mongoose.connection;
+
+/* Models */
 const User = require("../models/User");
 
 /* TODO: Test if this actually throws an error */
 const getUserFromEmail = (email, withPassword = false) => {
-  return User.findOne({ email }, { password: withPassword })
+  return User.findOne({ email })
+    .select(withPassword && "+password")
     .then(user => user)
     .catch(err => err);
 };
@@ -32,5 +42,26 @@ const createUser = userData => {
     );
   });
 };
+
+// const createNewSession = details => {
+//   const { sessionId, userId, ...preferences } = details;
+
+//   return new Promise((resolve, reject) => {
+//     return Session.create(
+//       {
+//         owner: userId,
+//         sessionId: sessionId,
+//         ...preferences
+//       },
+//       (err, session) => {
+//         if (err) {
+//           return reject(err);
+//         }
+
+//         return resolve(session);
+//       }
+//     );
+//   });
+// };
 
 export { getUserFromEmail, getUserFromId, createUser };

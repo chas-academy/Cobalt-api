@@ -3,14 +3,6 @@ const LocalStrategy = require("passport-local").Strategy;
 
 const dbActions = require("../db/actions");
 
-const strip = (obj, ...props) => {
-  const newObj = Object.assign({}, obj);
-
-  props.forEach(prop => delete newObj[prop]);
-
-  return newObj;
-};
-
 /* Serializing */
 passport.serializeUser(function(user, done) {
   done(null, user.id);
