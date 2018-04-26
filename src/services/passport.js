@@ -24,21 +24,19 @@ passport.use(
     },
     function(email, password, done) {
       dbActions
-        .getUserFromEmail(email)
+        .getUserFromEmail(email, true)
         .then(user => {
           if (!user) {
             return done(null, false, { message: "Incorrect username." });
           }
 
-          if (!user.validPassword(password)) {
+          if (!user.validPassword(password, user.password)) {
             return done(null, false, { message: "Incorrect password." });
           }
 
           return done(null, user);
         })
-        .catch(err => {
-          return done(err);
-        });
+        .catch(err => done(err));
     }
   )
 );
