@@ -1,11 +1,11 @@
+import http from "http";
+
 /* Express */
 import express from "express";
 import session from "express-session";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-
-import http from "http";
 
 /* SocketIO */
 import socketIO from "socket.io";
@@ -67,19 +67,15 @@ const onDisconnect = makeOnDisconnectHandler(io, rooms, socketMethods);
 
 /* General client connection */
 io.on("connection", socket => {
-  /* Client emits what session they'd like to join */
   socket.on("joinSession", onJoinSession);
-
   socket.on("attendeePayload", onAttendeePayload);
-
   socket.on("presenterPayload", onPresenterPayload);
-
   socket.on("disconnecting", onDisconnect);
 });
 
 /* Start */
 const port = process.env.PORT || 7770;
 
-server.listen(port, () => {
-  console.log("[api][listen] http://localhost:" + port);
-});
+server.listen(port, () =>
+  console.log("[api][listen] http://localhost:" + port)
+);
