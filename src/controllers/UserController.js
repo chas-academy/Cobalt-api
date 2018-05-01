@@ -25,6 +25,11 @@ router.post("/", (req, res) => {
 
   dbActions
     .createUser(userData)
+    .then(user => {
+      dbActions.createWorkspace({ userId: user._id, name: "Personal" });
+
+      return user;
+    })
     .then(user =>
       res.status(200).json({
         success: true,
