@@ -14,14 +14,26 @@ const strip = (obj, ...props) => {
 };
 
 /* Auth */
-router.get("/", passport.authenticate("local"), (req, res) => {
+router.get("/", (req, res) => {
+  if (!req.user) {
+    return res.json(401, {
+      success: false,
+      message: "You need to be logged in."
+    });
+  }
+
   res.json(200, {
+    success: true,
     user: req.user
   });
 });
 
 router.post("/", passport.authenticate("local"), (req, res) => {
   if (!req.user) return;
+
+  req.logIn(req.user, err => {
+    console.log("passport.logIn", err);
+  });
 
   res.json(200, {
     success: true,

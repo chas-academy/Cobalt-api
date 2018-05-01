@@ -15,13 +15,24 @@ const WrappedSessionController = socketMethods => (
 
     rooms[sessionId] = {
       session: socketMethods.getNewSession(sessionId),
+      attendees: new Map(),
       presentation: {
-        owner: req.user.name,
-        description: "AI in the future.",
-        attendees: 0,
-        engagement: {
-          threshold: 3.5,
-          description: "Faster, slower"
+        information: {
+          owner: req.user.name,
+          description: "AI in the future."
+        },
+        data: {
+          settings: {
+            isAverage: true,
+            threshold: 35,
+            description: "Faster, slower"
+          },
+          attendees: 0,
+          engagement: {
+            positive: 50,
+            negative: 50,
+            average: 0
+          }
         }
       }
     };

@@ -1,3 +1,7 @@
+if (!process.env.PORT) {
+  require("dotenv").config();
+}
+
 /* Database */
 const DATABASE_CONNECTION = `mongodb://${
   process.env.MONGO_INITDB_ROOT_USERNAME

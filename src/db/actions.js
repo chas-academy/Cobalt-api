@@ -19,9 +19,15 @@ const getUserFromEmail = (email, withPassword = false) => {
 
 /* TODO: Test if this actually throws an error */
 const getUserFromId = id => {
-  return User.findById(id)
-    .then(user => user)
-    .catch(err => err);
+  return new Promise((resolve, reject) => {
+    return User.findById(id, (err, user) => {
+      if (err) {
+        return reject(err);
+      }
+
+      return resolve(user);
+    });
+  });
 };
 
 const createUser = userData => {

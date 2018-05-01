@@ -1,10 +1,11 @@
+import http from "http";
+
 /* Express */
 import express from "express";
 import session from "express-session";
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
 import cors from "cors";
-
-import http from "http";
 
 /* SocketIO */
 import socketIO from "socket.io";
@@ -17,7 +18,7 @@ const app = express();
 const server = http.Server(app);
 const io = socketIO(server);
 
-/* Middlewares */
+/* Middleware */
 app.use(
   cors({
     origin: process.env.ALLOW_ORIGIN,
@@ -28,8 +29,9 @@ app.use(
 );
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(session({ secret: "cats" }));
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(session({ secret: "cats", resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -45,48 +47,35 @@ app.get("/", (req, res) => res.send("Cobalt API"));
 import { rooms, SocketMethodsFactory } from "./socket/socket";
 const socketMethods = SocketMethodsFactory(io, rooms);
 
-/* Endpoints */
+/* End-points */
 app.use("/api/user", UserController);
 app.use("/api/auth", AuthController);
 app.use("/api/session", SessionController(socketMethods));
 
 /* Socket Handling */
-const asyncPipe = (...fns) => x => fns.reduce(async (y, f) => f(await y), x);
-const canCreateSession = (io, sessionId) =>
-  asyncPipe(!sessionExists, getNewSession);
+import {
+  makeJoinSessionHandler,
+  makeOnAttendeePayload,
+  makeOnPresenterPayload,
+  makeOnDisconnectHandler
+} from "./socket/onSocketActions";
+
+const onJoinSession = makeJoinSessionHandler(io, rooms, socketMethods);
+const onAttendeePayload = makeOnAttendeePayload(io, rooms, socketMethods);
+const onPresenterPayload = makeOnPresenterPayload(io);
+const onDisconnect = makeOnDisconnectHandler(io, rooms, socketMethods);
 
 /* General client connection */
 io.on("connection", socket => {
-  /* Client emits what session they'd like to join */
-  socket.on("joinSession", sessionId => {
-    if (!socketMethods.sessionExists(sessionId)) {
-      socket.disconnect();
-      return;
-    }
-    /* Add the client to this room */
-    socket.join(sessionId);
-    rooms[sessionId].presentation.attendees = socketMethods.getNumOfAttendees(
-      sessionId
-    );
-
-    /* Welcome message */
-    socket.emit("sessionUpdated", {
-      message: rooms[sessionId].presentation
-    });
-  });
-
-  socket.on("attendeePayload", payload => {
-    io.sockets.in(payload.session).emit("sessionUpdated", payload);
-  });
-
-  socket.on("presenterPayload", payload => {
-    io.sockets.in(payload.session).emit("sessionUpdated", payload);
-  });
+  socket.on("joinSession", onJoinSession);
+  socket.on("attendeePayload", onAttendeePayload);
+  socket.on("presenterPayload", onPresenterPayload);
+  socket.on("disconnecting", onDisconnect);
 });
 
 /* Start */
 const port = process.env.PORT || 7770;
 
-server.listen(port, () => {
-  console.log("[api][listen] http://localhost:" + port);
-});
+server.listen(port, () =>
+  console.log("[api][listen] http://localhost:" + port)
+);
