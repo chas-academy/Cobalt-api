@@ -13,6 +13,9 @@ import socketIO from "socket.io";
 /* Services */
 import passport from "passport";
 
+/* DB Actions */
+import * as dbActions from "./db/actions";
+
 /* Initialisation */
 const app = express();
 const server = http.Server(app);
@@ -30,8 +33,15 @@ app.use(
 
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(session({ secret: "cats", resave: false, saveUninitialized: false }));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(
+  session({
+    secret: "cats",
+    cookie: { maxAge: 360 * 60 * 1000 },
+    resave: false,
+    saveUninitialized: false
+  })
+);
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -57,12 +67,14 @@ import {
   makeJoinSessionHandler,
   makeOnAttendeePayload,
   makeOnPresenterPayload,
+  makeOnPresenterSavePolling,
   makeOnDisconnectHandler
 } from "./socket/onSocketActions";
 
 const onJoinSession = makeJoinSessionHandler(io, rooms, socketMethods);
 const onAttendeePayload = makeOnAttendeePayload(io, rooms, socketMethods);
 const onPresenterPayload = makeOnPresenterPayload(io);
+const onPresenterSavePolling = makeOnPresenterSavePolling(io, dbActions);
 const onDisconnect = makeOnDisconnectHandler(io, rooms, socketMethods);
 
 /* General client connection */
@@ -70,6 +82,7 @@ io.on("connection", socket => {
   socket.on("joinSession", onJoinSession);
   socket.on("attendeePayload", onAttendeePayload);
   socket.on("presenterPayload", onPresenterPayload);
+  socket.on("presenterRequestsSave", onPresenterSavePolling);
   socket.on("disconnecting", onDisconnect);
 });
 

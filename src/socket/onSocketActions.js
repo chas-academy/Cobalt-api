@@ -1,3 +1,4 @@
+/* Join Session */
 export const makeJoinSessionHandler = (io, rooms, socketMethods) =>
   function onJoinSession(sessionId) {
     const socket = this;
@@ -28,6 +29,7 @@ export const makeJoinSessionHandler = (io, rooms, socketMethods) =>
       .emit("updateHost", rooms[sessionId].presentation.data);
   };
 
+/* Attendee Payload */
 export const makeOnAttendeePayload = (io, rooms, socketMethods) =>
   function onAttendeePayload({ session, payload }) {
     const socket = this;
@@ -37,7 +39,7 @@ export const makeOnAttendeePayload = (io, rooms, socketMethods) =>
     /* Update the attendees engagement value */
     socketMethods.updateAttendee(session, socket.id, payload);
 
-    if (!rooms[session].presentation.data.settings.isAverage) {
+    if (!rooms[session].presentation.settings.isAverage) {
       /* Get the total num of attendees */
       let attendees = 0;
 
@@ -57,12 +59,8 @@ export const makeOnAttendeePayload = (io, rooms, socketMethods) =>
       const negativePercentage = 100 - positivePercentage;
 
       /* Update presentation engagement values */
-      rooms[session].presentation.data.engagement.positive = Math.round(
-        positivePercentage
-      );
-      rooms[session].presentation.data.engagement.negative = Math.round(
-        negativePercentage
-      );
+      rooms[session].data.engagement.positive = Math.round(positivePercentage);
+      rooms[session].data.engagement.negative = Math.round(negativePercentage);
     } else {
       const attendees = socketMethods.getNumOfAttendees(session);
 
@@ -71,18 +69,28 @@ export const makeOnAttendeePayload = (io, rooms, socketMethods) =>
         attendee => (sum += attendee.engagement)
       );
 
-      rooms[session].presentation.data.engagement.average = sum / attendees;
+      rooms[session].data.engagement.average = sum / attendees;
     }
 
-    io.sockets.in(session).emit("updateHost", rooms[session].presentation.data);
+    io.sockets.in(session).emit("updateHost", rooms[session].data);
   };
 
+/* Presenter Payload */
 export const makeOnPresenterPayload = io =>
   function onPresenterPayload(payload) {
     console.log("presenterPayload", payload);
     io.sockets.in(payload.session).emit("updateClient", payload);
   };
 
+export const makeOnPresenterSavePolling = (io, dbActions) =>
+  function onPresenterSavePolling(payload) {
+    console.log("presenterRequestsSave", payload);
+
+    /* TODO: Update session data for presentation in DB */
+    dbActions.savePresentationValues(payload);
+  };
+
+/* On Disconnect */
 export const makeOnDisconnectHandler = (io, rooms, socketMethods) =>
   function onDisconnect() {
     const socket = this;
@@ -94,11 +102,9 @@ export const makeOnDisconnectHandler = (io, rooms, socketMethods) =>
       if (room !== id) {
         rooms[room].attendees.delete(id);
 
-        rooms[
-          room
-        ].presentation.data.attendees = socketMethods.getNumOfAttendees(room);
+        rooms[room].data.attendees = socketMethods.getNumOfAttendees(room);
 
-        io.sockets.in(room).emit("updateHost", rooms[room].presentation.data);
+        io.sockets.in(room).emit("updateHost", rooms[room].data);
       }
     });
   };
