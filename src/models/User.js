@@ -5,7 +5,8 @@ const bcrypt = require("bcrypt");
 const userSchema = mongoose.Schema({
   email: { type: String, unique: true, required: true },
   name: { type: String, required: true },
-  password: { type: String, select: false, required: true }
+  password: { type: String, select: false, required: true },
+  workspaces: { type: mongoose.Schema.Types.ObjectId, ref: "Workspace" }
 });
 
 userSchema.pre("save", function(next) {

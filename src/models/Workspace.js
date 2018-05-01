@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 
 const workSpaceSchema = mongoose.Schema({
   owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  subscription: { type: mongoose.Schema.Types.ObjectId, ref: "Subscription" },
+  name: { type: String, required: true },
+  // subscription: { type: mongoose.Schema.Types.ObjectId, ref: "Subscription" },
   presentations: [
     { type: mongoose.Schema.Types.ObjectId, ref: "Presentation" }
   ],
