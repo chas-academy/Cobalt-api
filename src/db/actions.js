@@ -54,7 +54,7 @@ const createUser = userData => {
   });
 };
 
-const createWorkspace = ({ userId, name = "Personal" }) => {
+const createWorkspace = ({ _id: userId }, name = "Personal") => {
   return new Promise((resolve, reject) => {
     return Workspace.create(
       {
@@ -67,9 +67,25 @@ const createWorkspace = ({ userId, name = "Personal" }) => {
           return reject(err);
         }
 
-        User.findByIdAndUpdate(workspace.owner, {
-          $push: { workspaces: workspace._id }
-        }).then(resolve(workspace));
+        return resolve(workspace);
+      }
+    );
+  });
+};
+
+const addWorkspaceToUser = ({ owner, _id: workspaceId }) => {
+  return new Promise((resolve, reject) => {
+    User.findByIdAndUpdate(
+      owner,
+      {
+        $push: { workspaces: workspaceId }
+      },
+      (err, user) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(user);
       }
     );
   });
@@ -125,7 +141,7 @@ const getPersonalWorkspace = userId => {
   });
 };
 
-const doesNotExceedMaximumNumPresentations = obj =>
+const doesNotExceedSimultaneousPresentations = obj =>
   new Promise((resolve, reject) => {
     const { workspaceId } = obj;
 
@@ -148,7 +164,7 @@ const savePresentationValues = obj =>
   });
 
 const createNewPresentation = asyncPipe(
-  doesNotExceedMaximumNumPresentations,
+  doesNotExceedSimultaneousPresentations,
   createPresentation
 );
 
@@ -159,5 +175,6 @@ export {
   createWorkspace,
   createPresentation,
   getPersonalWorkspace,
-  createNewPresentation
+  createNewPresentation,
+  addWorkspaceToUser
 };
