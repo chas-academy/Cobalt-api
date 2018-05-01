@@ -6,8 +6,13 @@ import { DATABASE_CONNECTION } from "../config/config";
 mongoose.connect(DATABASE_CONNECTION);
 const db = mongoose.connection;
 
+/* Utils */
+const asyncPipe = (...fns) => x => fns.reduce(async (y, f) => f(await y), x);
+
 /* Models */
 const User = require("../models/User");
+const Presentation = require("../models/Presentation");
+const Workspace = require("../models/Workspace");
 
 /* TODO: Test if this actually throws an error */
 const getUserFromEmail = (email, withPassword = false) => {
@@ -49,25 +54,110 @@ const createUser = userData => {
   });
 };
 
-// const createNewSession = details => {
-//   const { sessionId, userId, ...preferences } = details;
+const createWorkspace = ({ userId, name = "Personal" }) => {
+  return new Promise((resolve, reject) => {
+    return Workspace.create(
+      {
+        owner: userId,
+        name: name,
+        members: [userId]
+      },
+      (err, workspace) => {
+        if (err) {
+          return reject(err);
+        }
 
-//   return new Promise((resolve, reject) => {
-//     return Session.create(
-//       {
-//         owner: userId,
-//         sessionId: sessionId,
-//         ...preferences
-//       },
-//       (err, session) => {
-//         if (err) {
-//           return reject(err);
-//         }
+        User.findByIdAndUpdate(workspace.owner, {
+          $push: { workspaces: workspace._id }
+        }).then(resolve(workspace));
+      }
+    );
+  });
+};
 
-//         return resolve(session);
-//       }
-//     );
-//   });
-// };
+const createPresentation = ({
+  workspaceId,
+  userId,
+  sessionId,
+  name = "Presentation Default Name",
+  description = "Presentation Default Description",
+  settings = {}
+}) => {
+  return new Promise((resolve, reject) => {
+    return Presentation.create(
+      {
+        workspace: workspaceId,
+        author: userId,
+        sessionId: sessionId,
 
-export { getUserFromEmail, getUserFromId, createUser };
+        name: name,
+        description: description,
+        settings: settings
+      },
+      (err, presentation) => {
+        if (err) {
+          return reject(err);
+        }
+
+        Workspace.findByIdAndUpdate(presentation.workspace, {
+          $push: { presentations: presentation._id }
+        }).then(resolve(presentation));
+      }
+    );
+  });
+};
+
+const getPersonalWorkspace = userId => {
+  return new Promise((resolve, reject) => {
+    return Workspace.findOne(
+      {
+        name: "Personal",
+        owner: userId
+      },
+      (err, workspace) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(workspace);
+      }
+    );
+  });
+};
+
+const doesNotExceedMaximumNumPresentations = obj =>
+  new Promise((resolve, reject) => {
+    const { workspaceId } = obj;
+
+    /* if not available reject */
+
+    resolve(obj);
+  });
+
+const savePresentationValues = obj =>
+  new Promise((resolve, reject) => {
+    const { timeStamp, value, sessionId } = obj;
+
+    return Presentation.findByIdAndUpdate(sessionId, {
+      $push: {
+        data: {
+          timeStamp: value
+        }
+      }
+    });
+  });
+
+const createNewPresentation = asyncPipe(
+  doesNotExceedMaximumNumPresentations,
+  createPresentation
+);
+
+export {
+  getUserFromEmail,
+  getUserFromId,
+  createUser,
+  createWorkspace,
+  createPresentation,
+  getPersonalWorkspace,
+  createNewPresentation
+};
