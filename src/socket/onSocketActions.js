@@ -39,38 +39,9 @@ export const makeOnAttendeePayload = (io, rooms, socketMethods) =>
     /* Update the attendees engagement value */
     socketMethods.updateAttendee(session, socket.id, payload);
 
-    if (!rooms[session].presentation.settings.isAverage) {
-      /* Get the total num of attendees */
-      let attendees = 0;
-
-      /* Calculate feedback values */
-      let positive = 0;
-      let negative = 0;
-      rooms[session].attendees.forEach(attendee => {
-        if (attendee.engagement === -1 || attendee.engagement === 1) {
-          if (attendee.engagement === 1) positive++;
-          if (attendee.engagement === -1) negative++;
-
-          attendees++;
-        }
-      });
-
-      const positivePercentage = positive / attendees * 100;
-      const negativePercentage = 100 - positivePercentage;
-
-      /* Update presentation engagement values */
-      rooms[session].data.engagement.positive = Math.round(positivePercentage);
-      rooms[session].data.engagement.negative = Math.round(negativePercentage);
-    } else {
-      const attendees = socketMethods.getNumOfAttendees(session);
-
-      let sum = 0;
-      rooms[session].attendees.forEach(
-        attendee => (sum += attendee.engagement)
-      );
-
-      rooms[session].data.engagement.average = sum / attendees;
-    }
+    const newData = socketMethods.presentationUsesAverage(session)
+      ? socketMethods.calculateAverageValue(session)
+      : socketMethods.calculatePercentageValue(session);
 
     io.sockets.in(session).emit("updateHost", rooms[session].data);
   };
