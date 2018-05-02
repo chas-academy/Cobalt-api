@@ -17,7 +17,7 @@ router.get("/:userId", (req, res) => {
 });
 
 /* Create User Pipe */
-const createCompleteUser = asyncPipe(
+const createUserWithWorkspace = asyncPipe(
   dbActions.createUser,
   dbActions.createWorkspace,
   dbActions.addWorkspaceToUser
@@ -27,7 +27,7 @@ const createCompleteUser = asyncPipe(
 router.post("/", (req, res) => {
   const { email, name, password } = req.body;
 
-  createCompleteUser({
+  createUserWithWorkspace({
     email,
     name,
     password
