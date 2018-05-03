@@ -97,7 +97,18 @@ const createPresentation = ({
   sessionId,
   name = "Presentation Default Name",
   description = "Presentation Default Description",
-  settings = {}
+  settings = {
+    isStopped: false,
+    isPaused: false,
+    hasStarted: false,
+    isAverage: true,
+    maxAttendees: 50,
+    threshold: 35,
+    engagementDescription: {
+      up: "Positive",
+      down: "Negative"
+    }
+  }
 }) => {
   return new Promise((resolve, reject) => {
     return Presentation.create(
@@ -152,14 +163,39 @@ const doesNotExceedSimultaneousPresentations = obj =>
 
 const savePresentationValues = obj =>
   new Promise((resolve, reject) => {
-    const { timeStamp, value, sessionId } = obj;
+    const { timeStamp, value, sessionId } = obj.payload;
 
-    return Presentation.findByIdAndUpdate(sessionId, {
-      $push: {
-        data: {
-          timeStamp: value
+    console.log("inaction", obj.payload);
+
+    console.log(timeStamp);
+
+    return Presentation.findByIdAndUpdate(
+      obj.presentationId,
+      {
+        $push: {
+          data: {
+            timeStamp: timeStamp,
+            value: value
+          }
         }
+      },
+      { new: true },
+      (err, data) => {
+        if (err) console.log(err);
+
+        resolve(data);
       }
+    );
+  });
+
+const getPresentation = id =>
+  new Promise((resolve, reject) => {
+    return Presentation.findById(id, (err, presentation) => {
+      if (err) {
+        return reject(err);
+      }
+
+      return resolve(presentation);
     });
   });
 
@@ -176,5 +212,7 @@ export {
   createPresentation,
   getPersonalWorkspace,
   createNewPresentation,
+  savePresentationValues,
+  getPresentation,
   addWorkspaceToUser
 };

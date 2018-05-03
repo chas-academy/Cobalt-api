@@ -31,9 +31,24 @@ const WrappedSessionController = socketMethods => (
         /* Initialise new IO-session */
         rooms[sessionId] = {
           session: socketMethods.getNewSession(sessionId),
+          presentationId: presentation._id,
           attendees: new Map(),
-          data: {},
-          presentation
+          data: {
+            sessionId: sessionId,
+            engagement: {
+              average: 0,
+              positive: 50,
+              negative: 50
+            },
+            time: 0,
+            attendees: 0,
+            likes: 0,
+            status: presentation.settings,
+            description: {
+              title: presentation.name,
+              description: presentation.description
+            }
+          }
         };
 
         res.status(200).json({

@@ -11,7 +11,7 @@ const presentationSchema = mongoose.Schema(
     settings: { type: Object, default: {} },
 
     /* TODO: split these into a sections array */
-    data: [{ type: mongoose.Schema.Types.Object, default: {} }]
+    data: [{ timeStamp: String, value: Object }]
   },
   { minimize: false }
 );

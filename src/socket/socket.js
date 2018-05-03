@@ -16,7 +16,7 @@ const SocketMethodsFactory = (io, rooms /* should be DB */) => {
     rooms[sessionId].attendees.size;
 
   const presentationUsesAverage = (rooms, sessionId) =>
-    rooms[session].presentation.settings.isAverage;
+    rooms[session].data.status.isAverage;
 
   const calculatePercentageValue = (rooms, sessionId) => {
     /* Get the total num of attendees */
@@ -26,9 +26,9 @@ const SocketMethodsFactory = (io, rooms /* should be DB */) => {
     let positive = 0;
     let negative = 0;
     rooms[sessionId].attendees.forEach(attendee => {
-      if (attendee.engagement === -1 || attendee.engagement === 1) {
-        if (attendee.engagement === 1) positive++;
-        if (attendee.engagement === -1) negative++;
+      if (attendee.engagement !== 0) {
+        if (attendee.engagement > 0) positive++;
+        if (attendee.engagement < 0) negative++;
 
         attendees++;
       }
@@ -39,16 +39,18 @@ const SocketMethodsFactory = (io, rooms /* should be DB */) => {
 
     /* Update presentation engagement values */
     return {
-      up: Math.round(positivePercentage),
-      down: Math.round(negativePercentage)
+      positive: Math.round(positivePercentage),
+      negative: Math.round(negativePercentage)
     };
   };
 
   const calculateAverageValue = (rooms, sessionId) => {
-    const attendees = socketMethods.getNumOfAttendees(session);
+    const attendees = rooms[sessionId].attendees.size;
 
     let sum = 0;
-    rooms[session].attendees.forEach(attendee => (sum += attendee.engagement));
+    rooms[sessionId].attendees.forEach(
+      attendee => (sum += attendee.engagement)
+    );
 
     return {
       average: sum / attendees

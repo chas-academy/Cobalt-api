@@ -73,8 +73,8 @@ import {
 
 const onJoinSession = makeJoinSessionHandler(io, rooms, socketMethods);
 const onAttendeePayload = makeOnAttendeePayload(io, rooms, socketMethods);
-const onPresenterPayload = makeOnPresenterPayload(io);
-const onPresenterSavePolling = makeOnPresenterSavePolling(io, dbActions);
+const onPresenterPayload = makeOnPresenterPayload(io, rooms);
+const onPresenterSavePolling = makeOnPresenterSavePolling(io, rooms, dbActions);
 const onDisconnect = makeOnDisconnectHandler(io, rooms, socketMethods);
 
 /* General client connection */
