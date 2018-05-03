@@ -1,29 +1,137 @@
-let rooms = {};
+let presentations = {};
 
-const SocketMethodsFactory = (io, rooms /* should be DB */) => {
-  const getNewSession = sessionId => io.of(sessionId);
+const SocketMethodsFactory = (io, presentations /* should be DB */) => {
+  const initialiseSocketSession = (
+    presentations,
+    io,
+    { sessionId, _id: presentationId, settings, description, name },
+    {
+      threshold = 35,
+      maxAttendees = 50,
+      engagementDescription = {
+        up: "Positive",
+        down: "Negative"
+      }
+    }
+  ) =>
+    (presentations[sessionId] = {
+      session: io.of(sessionId),
+      presentationId: presentationId,
+      attendees: new Map(),
+      data: {
+        sessionId: sessionId,
+        presentation: {
+          name: name,
+          description: description
+        },
+        settings: {
+          threshold,
+          maxAttendees,
+          engagementDescription
+        },
+        status: {
+          hasStarted: false,
+          hasEnded: false,
+          isPaused: false,
+          time: 0
+        },
+        engagement: {
+          average: 0,
+          positive: 50,
+          negative: 50
+        },
+        attendees: 0
+      }
+    });
 
-  const sessionExists = (rooms, sessionId) => rooms.hasOwnProperty(sessionId);
+  const sessionExists = (presentations, sessionId) => {
+    return presentations.hasOwnProperty(sessionId);
+  };
+
+  const sessionHasEnded = (presentations, sessionId) => {
+    return presentations[sessionId].data.status.hasEnded;
+  };
 
   const updateAttendee = (
-    rooms,
+    presentations,
     sessionId,
     socketId,
     value = { engagement: 0 }
-  ) => rooms[sessionId].attendees.set(socketId, value);
+  ) => presentations[sessionId].attendees.set(socketId, value);
 
-  const getNumOfAttendees = (rooms, sessionId) =>
-    rooms[sessionId].attendees.size;
+  const getNumOfAttendees = (presentations, sessionId) =>
+    presentations[sessionId].attendees.size;
+
+  const calculatePercentageValue = (presentations, sessionId) => {
+    /* Get the total num of attendees */
+    let attendees = 0;
+
+    /* Calculate feedback values */
+    let positive = 0;
+    let negative = 0;
+    presentations[sessionId].attendees.forEach(attendee => {
+      if (attendee.engagement !== 0) {
+        if (attendee.engagement > 0) positive++;
+        if (attendee.engagement < 0) negative++;
+
+        attendees++;
+      }
+    });
+
+    const positivePercentage = positive / attendees * 100;
+    const negativePercentage = 100 - positivePercentage;
+
+    /* Update presentation engagement values */
+    return {
+      positive: Math.round(positivePercentage),
+      negative: Math.round(negativePercentage)
+    };
+  };
+
+  const calculateAverageValue = (presentations, sessionId) => {
+    const attendees = presentations[sessionId].attendees.size;
+
+    let sum = 0;
+    presentations[sessionId].attendees.forEach(
+      attendee => (sum += attendee.engagement)
+    );
+
+    return {
+      average: sum / attendees
+    };
+  };
+
+  const passClientData = (presentations, sessionId) =>
+    Object.assign(
+      {},
+      { presentation: presentations[sessionId].data.presentation },
+      { status: presentations[sessionId].data.status },
+      {
+        engagementDescription:
+          presentations[sessionId].data.settings.engagementDescription
+      }
+    );
 
   return {
-    getNewSession: getNewSession.bind(null, io),
-    sessionExists: sessionExists.bind(null, rooms),
-    updateAttendee: updateAttendee.bind(null, rooms),
-    getNumOfAttendees: getNumOfAttendees.bind(null, rooms)
+    sessionExists: sessionExists.bind(null, presentations),
+    sessionHasEnded: sessionHasEnded.bind(null, presentations),
+    updateAttendee: updateAttendee.bind(null, presentations),
+    getNumOfAttendees: getNumOfAttendees.bind(null, presentations),
+    calculatePercentageValue: calculatePercentageValue.bind(
+      null,
+      presentations
+    ),
+    calculateAverageValue: calculateAverageValue.bind(null, presentations),
+    initialiseSocketSession: initialiseSocketSession.bind(
+      null,
+      presentations,
+      io
+    ),
+    passClientData: passClientData.bind(null, presentations)
   };
 };
 
-export { rooms, SocketMethodsFactory };
+export { presentations, SocketMethodsFactory };
 
 /* TODO: */
 // const asyncPipe = (...fns) => x => fns.reduce(async (y, f) => f(await y), x);

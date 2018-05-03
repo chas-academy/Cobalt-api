@@ -1,18 +1,18 @@
 {
-  "name": "project-api-boilerplate",
+  "name": "cobalt-api",
   "version": "0.0.1",
   "description": "API Boilerplate",
   "author": "Chas Academy",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "git@github.com:chas-academy/project-api-boilerplate.git"
+    "url": "git@github.com:chas-academy/chas-academy/Cobalt-api.git"
   },
   "bugs": {
-    "url": "https://github.com/chas-academy/project-api-boilerplate/issues"
+    "url": "https://github.com/chas-academy/chas-academy/Cobalt-api/issues"
   },
   "homepage":
-    "https://github.com/chas-academy/project-api-boilerplate/tree/master",
+    "https://github.com/chas-academy/chas-academy/Cobalt-api/tree/master",
   "dependencies": {
     "bcrypt": "^2.0.1",
     "body-parser": "~1.0.1",

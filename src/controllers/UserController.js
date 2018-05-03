@@ -2,6 +2,8 @@ import express from "express";
 
 import * as dbActions from "../db/actions";
 
+import { asyncPipe } from "../utils/fp";
+
 const router = express.Router();
 
 // Read
@@ -14,21 +16,26 @@ router.get("/:userId", (req, res) => {
   });
 });
 
+/* Create User Pipe */
+const createUserWithWorkspace = asyncPipe(
+  dbActions.createUser,
+  dbActions.createWorkspace,
+  dbActions.addWorkspaceToUser
+);
+
 // Create
 router.post("/", (req, res) => {
   const { email, name, password } = req.body;
-  const userData = {
+
+  createUserWithWorkspace({
     email,
     name,
     password
-  };
-
-  dbActions
-    .createUser(userData)
+  })
     .then(user =>
       res.status(200).json({
         success: true,
-        user: user
+        user
       })
     )
     .catch(err =>

@@ -5,42 +5,43 @@ const router = express.Router();
 /* Utils */
 import shortid from "shortid";
 
-import { rooms } from "../socket/socket";
+import { presentations } from "../socket/socket";
 
 import { requireLogin } from "../middleware";
 
+import * as dbActions from "../db/actions";
+
 const WrappedSessionController = socketMethods => (
-  router.post("/", requireLogin, (req, res) => {
+  router.post("/", requireLogin, async (req, res) => {
     const sessionId = shortid.generate();
+    const { name, description, settings } = req.body;
 
-    rooms[sessionId] = {
-      session: socketMethods.getNewSession(sessionId),
-      attendees: new Map(),
-      presentation: {
-        information: {
-          owner: req.user.name,
-          description: "AI in the future."
-        },
-        data: {
-          settings: {
-            isAverage: true,
-            threshold: 35,
-            description: "Faster, slower"
-          },
-          attendees: 0,
-          engagement: {
-            positive: 50,
-            negative: 50,
-            average: 0
-          }
-        }
-      }
-    };
+    dbActions
+      .createPresentation({
+        workspaceId: await dbActions
+          .getPersonalWorkspace(req.user._id)
+          .then(workspace => workspace._id),
+        sessionId,
+        userId: req.user._id,
+        name,
+        description
+      })
+      .then(presentation => {
+        /* Initialise new IO-session */
+        socketMethods.initialiseSocketSession(presentation, {});
 
-    res.status(200).json({
-      success: true,
-      session: sessionId
-    });
+        res.status(200).json({
+          success: true,
+          presentation: presentation
+        });
+      })
+      .catch(err => {
+        console.log(err);
+        res.status(500).json({
+          success: false,
+          message: "There was an error creating your presentation."
+        });
+      });
   }),
   /* Session Passthrough Route */
   router.get("/:sessionId", (req, res) => {
