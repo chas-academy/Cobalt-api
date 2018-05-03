@@ -28,7 +28,7 @@ const WrappedSessionController = socketMethods => (
       })
       .then(presentation => {
         /* Initialise new IO-session */
-        socketMethods.initialiseSocketSession(presentation, {});
+        socketMethods.initialiseSocketSession(presentation, settings || {});
 
         res.status(200).json({
           success: true,
@@ -53,6 +53,14 @@ const WrappedSessionController = socketMethods => (
         message: "No session found for that URL."
       });
     }
+
+    // if (req.user) {
+    //   const { _id } = req.user;
+
+    //   dbActions.checkIfUserOwnsPresentation(_id).then(res => {
+    //     socketMethods.setOwner()
+    //   })
+    // }
 
     res.status(200).json({
       success: true,
