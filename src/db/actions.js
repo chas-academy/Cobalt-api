@@ -35,6 +35,26 @@ const getUserFromId = id => {
   });
 };
 
+const getUserData = id => {
+  return new Promise((resolve, reject) => {
+    return User.findById(id)
+      .populate({
+        path: "workspaces",
+        populate: {
+          path: "presentations",
+          select: "-data"
+        }
+      })
+      .exec((err, user) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(user);
+      });
+  });
+};
+
 const createUser = userData => {
   return new Promise((resolve, reject) => {
     return User.create(
@@ -223,6 +243,7 @@ const createNewPresentation = asyncPipe(
 export {
   getUserFromEmail,
   getUserFromId,
+  getUserData,
   createUser,
   createWorkspace,
   createPresentation,
