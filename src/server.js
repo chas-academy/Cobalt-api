@@ -54,8 +54,8 @@ import SessionController from "./controllers/SessionController";
 app.get("/", (req, res) => res.send("Cobalt API"));
 
 /* Sockets */
-import { rooms, SocketMethodsFactory } from "./socket/socket";
-const socketMethods = SocketMethodsFactory(io, rooms);
+import { presentations, SocketMethodsFactory } from "./socket/socket";
+const socketMethods = SocketMethodsFactory(io, presentations);
 
 /* End-points */
 app.use("/api/user", UserController);
@@ -71,11 +71,25 @@ import {
   makeOnDisconnectHandler
 } from "./socket/onSocketActions";
 
-const onJoinSession = makeJoinSessionHandler(io, rooms, socketMethods);
-const onAttendeePayload = makeOnAttendeePayload(io, rooms, socketMethods);
-const onPresenterPayload = makeOnPresenterPayload(io, rooms);
-const onPresenterSavePolling = makeOnPresenterSavePolling(io, rooms, dbActions);
-const onDisconnect = makeOnDisconnectHandler(io, rooms, socketMethods);
+const onJoinSession = makeJoinSessionHandler(io, presentations, socketMethods);
+const onAttendeePayload = makeOnAttendeePayload(
+  io,
+  presentations,
+  socketMethods
+);
+const onPresenterPayload = makeOnPresenterPayload(
+  io,
+  presentations,
+  socketMethods,
+  dbActions
+);
+const onPresenterSavePolling = makeOnPresenterSavePolling(
+  io,
+  presentations,
+  socketMethods,
+  dbActions
+);
+const onDisconnect = makeOnDisconnectHandler(io, presentations, socketMethods);
 
 /* General client connection */
 io.on("connection", socket => {

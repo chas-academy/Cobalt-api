@@ -96,19 +96,19 @@ const createPresentation = ({
   userId,
   sessionId,
   name = "Presentation Default Name",
-  description = "Presentation Default Description",
-  settings = {
-    isStopped: false,
-    isPaused: false,
-    hasStarted: false,
-    isAverage: true,
-    maxAttendees: 50,
-    threshold: 35,
-    engagementDescription: {
-      up: "Positive",
-      down: "Negative"
-    }
-  }
+  description = "Presentation Default Description"
+  // settings = {
+  //   isStopped: false,
+  //   isPaused: false,
+  //   hasStarted: false,
+  //   isAverage: true,
+  //   maxAttendees: 50,
+  //   threshold: 35,
+  //   engagementDescription: {
+  //     up: "Positive",
+  //     down: "Negative"
+  //   }
+  // }
 }) => {
   return new Promise((resolve, reject) => {
     return Presentation.create(
@@ -118,8 +118,8 @@ const createPresentation = ({
         sessionId: sessionId,
 
         name: name,
-        description: description,
-        settings: settings
+        description: description
+        // settings: settings
       },
       (err, presentation) => {
         if (err) {
@@ -163,7 +163,7 @@ const doesNotExceedSimultaneousPresentations = obj =>
 
 const savePresentationValues = obj =>
   new Promise((resolve, reject) => {
-    const { timeStamp, value, sessionId } = obj.payload;
+    const { timeStamp, value, sessionId, attendees } = obj.payload;
 
     console.log("inaction", obj.payload);
 
@@ -175,7 +175,8 @@ const savePresentationValues = obj =>
         $push: {
           data: {
             timeStamp: timeStamp,
-            value: value
+            value: value,
+            attendees: attendees
           }
         }
       },
@@ -199,6 +200,21 @@ const getPresentation = id =>
     });
   });
 
+const endPresentation = id =>
+  new Promise((resolve, reject) => {
+    return Presentation.findByIdAndUpdate(
+      id,
+      { hasEnded: true },
+      (err, presentation) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(presentation);
+      }
+    );
+  });
+
 const createNewPresentation = asyncPipe(
   doesNotExceedSimultaneousPresentations,
   createPresentation
@@ -214,5 +230,6 @@ export {
   createNewPresentation,
   savePresentationValues,
   getPresentation,
+  endPresentation,
   addWorkspaceToUser
 };

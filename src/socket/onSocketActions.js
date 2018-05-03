@@ -1,12 +1,15 @@
 /* Join Session */
-export const makeJoinSessionHandler = (io, rooms, socketMethods) =>
+export const makeJoinSessionHandler = (io, presentations, socketMethods) =>
   function onJoinSession(sessionId) {
     const socket = this;
 
     console.log("onJoinSession", sessionId);
-    console.log(rooms[sessionId]);
+    console.log(presentations[sessionId]);
 
-    if (!socketMethods.sessionExists(sessionId)) {
+    if (
+      !socketMethods.sessionExists(sessionId) ||
+      socketMethods.sessionHasEnded(sessionId)
+    ) {
       socket.disconnect();
       return;
     }
@@ -17,25 +20,33 @@ export const makeJoinSessionHandler = (io, rooms, socketMethods) =>
     socketMethods.updateAttendee(sessionId, socket.id);
 
     /* Update number of attendees */
-    rooms[sessionId].data.attendees = socketMethods.getNumOfAttendees(
+    presentations[sessionId].data.attendees = socketMethods.getNumOfAttendees(
       sessionId
     );
 
     /* Send presentation description */
-    socket.emit("welcomeMessage", {
-      presentation: rooms[sessionId].data.description
-    });
+    socket.emit("updateClient", socketMethods.passClientData(sessionId));
 
     /* Update Host */
-    io.sockets.in(sessionId).emit("updateHost", rooms[sessionId].data);
+    io.sockets.in(sessionId).emit("updateHost", presentations[sessionId].data);
   };
 
 /* Attendee Payload */
-export const makeOnAttendeePayload = (io, rooms, socketMethods) =>
+export const makeOnAttendeePayload = (io, presentations, socketMethods) =>
   function onAttendeePayload({ session, payload }) {
     const socket = this;
 
     console.log("attendeePayload", session, payload);
+
+    if (
+      !socketMethods.sessionExists(sessionId) ||
+      socketMethods.sessionHasEnded(sessionId)
+    ) {
+      socket.disconnect();
+      return;
+    }
+
+    if (presentations[session].data.status.isPaused) return;
 
     /* Update the attendees engagement value */
     socketMethods.updateAttendee(session, socket.id, payload);
@@ -46,61 +57,115 @@ export const makeOnAttendeePayload = (io, rooms, socketMethods) =>
       socketMethods.calculatePercentageValue(session)
     );
 
-    console.log(newData);
+    presentations[session].data.engagement = newData;
 
-    rooms[session].data.engagement = newData;
+    console.log("onattendeepayload", presentations[session].data);
 
-    console.log("onattendeepayload", rooms[session].data);
-
-    io.sockets.in(session).emit("updateHost", rooms[session].data);
+    io.sockets.in(session).emit("updateHost", presentations[session].data);
   };
 
 /* Presenter Payload */
-export const makeOnPresenterPayload = (io, rooms) =>
+export const makeOnPresenterPayload = (
+  io,
+  presentations,
+  socketMethods,
+  dbActions
+) =>
   function onPresenterPayload(payload) {
     console.log("presenterPayload", payload);
-    rooms[payload.session].data = payload.payload;
+    const socket = this;
+
+    presentations[payload.session].data = payload.payload;
+
+    if (
+      !socketMethods.sessionExists(payload.session) ||
+      socketMethods.sessionHasEnded(payload.session)
+    ) {
+      socket.disconnect();
+      return;
+    }
+
     io.sockets
       .in(payload.session)
-      .emit("updateClient", rooms[payload.session].data);
+      .emit("updateClient", socketMethods.passClientData(payload.session));
+
+    if (payload.payload.status.hasEnded) {
+      const presentationNSP = io.of(payload.session); // Get Namespace
+      const connectedNameSpaceSockets = Object.keys(presentationNSP.connected); // Get Object with Connected SocketIds as properties
+      connectedNameSpaceSockets.forEach(socketId => {
+        presentationNSP.connected[socketId].disconnect(); // Disconnect Each socket
+      });
+      presentationNSP.removeAllListeners(); // Remove all Listeners for the event emitter
+      delete io.nsps[payload.session]; // Remove from the server namespaces
+
+      dbActions
+        .endPresentation(presentations[payload.session].presentationId)
+        .then(console.log)
+        .catch(console.error);
+    }
   };
 
-export const makeOnPresenterSavePolling = (io, rooms, dbActions) =>
+export const makeOnPresenterSavePolling = (
+  io,
+  presentations,
+  socketMethods,
+  dbActions
+) =>
   function onPresenterSavePolling(payload) {
     console.log("presenterRequestsSave", payload);
+
+    if (
+      !socketMethods.sessionExists(payload.sessionId) ||
+      socketMethods.sessionHasEnded(payload.sessionId)
+    ) {
+      socket.disconnect();
+      return;
+    }
 
     /* TODO: Update session data for presentation in DB */
     dbActions.savePresentationValues({
       payload,
-      presentationId: rooms[payload.sessionId].presentationId
+      presentationId: presentations[payload.sessionId].presentationId
     });
   };
 
 /* On Disconnect */
-export const makeOnDisconnectHandler = (io, rooms, socketMethods) =>
+export const makeOnDisconnectHandler = (io, presentations, socketMethods) =>
   function onDisconnect() {
     const socket = this;
 
-    const id = socket.id;
-    const userRooms = Object.values(Object.assign({}, socket.rooms));
+    // The attendees socketID
+    const attendeeId = socket.id;
+    // The attendees connected presentations
+    const attendeePresentations = Object.values(
+      Object.assign({}, socket.presentations)
+    );
 
-    userRooms.forEach(room => {
-      if (room !== id) {
-        rooms[room].attendees.delete(id);
+    // Loop over all of the presentations the attendee is connected to
+    attendeePresentations.forEach(sessionId => {
+      // If the sessionId is different to the attendees own session remove it from that presentation
+      if (sessionId !== attendeeId) {
+        // Remove the attendee from the attendees list
+        presentations[sessionId].attendees.delete(attendeeId);
+        // Update the presentations number of attendees
+        presentations[
+          sessionId
+        ].data.attendees = socketMethods.getNumOfAttendees(sessionId);
 
-        rooms[room].data.attendees = socketMethods.getNumOfAttendees(room);
-
+        // Re-calculate the data since we're now an attendee short
         const newData = Object.assign(
           {},
-          socketMethods.calculateAverageValue(room),
-          socketMethods.calculatePercentageValue(room)
+          socketMethods.calculateAverageValue(sessionId),
+          socketMethods.calculatePercentageValue(sessionId)
         );
 
-        console.log(newData);
+        // Update the data with the changes in mind
+        presentations[sessionId].data.engagement = newData;
 
-        rooms[room].data.engagement = newData;
-
-        io.sockets.in(room).emit("updateHost", rooms[room].data);
+        // Emit the new data to the host
+        io.sockets
+          .in(sessionId)
+          .emit("updateHost", presentations[sessionId].data);
       }
     });
   };

@@ -5,7 +5,7 @@ const router = express.Router();
 /* Utils */
 import shortid from "shortid";
 
-import { rooms } from "../socket/socket";
+import { presentations } from "../socket/socket";
 
 import { requireLogin } from "../middleware";
 
@@ -24,32 +24,11 @@ const WrappedSessionController = socketMethods => (
         sessionId,
         userId: req.user._id,
         name,
-        description,
-        settings
+        description
       })
       .then(presentation => {
         /* Initialise new IO-session */
-        rooms[sessionId] = {
-          session: socketMethods.getNewSession(sessionId),
-          presentationId: presentation._id,
-          attendees: new Map(),
-          data: {
-            sessionId: sessionId,
-            engagement: {
-              average: 0,
-              positive: 50,
-              negative: 50
-            },
-            time: 0,
-            attendees: 0,
-            likes: 0,
-            status: presentation.settings,
-            description: {
-              title: presentation.name,
-              description: presentation.description
-            }
-          }
-        };
+        socketMethods.initialiseSocketSession(presentation, {});
 
         res.status(200).json({
           success: true,
@@ -57,35 +36,12 @@ const WrappedSessionController = socketMethods => (
         });
       })
       .catch(err => {
+        console.log(err);
         res.status(500).json({
           success: false,
           message: "There was an error creating your presentation."
         });
       });
-
-    // For reference:
-    //
-    // const presentationToSave = {
-    //   presentation: {
-    //     information: {
-    //       owner: req.user.name,
-    //       description: "AI in the future."
-    //     },
-    //     data: {
-    //       settings: {
-    //         isAverage: true,
-    //         threshold: 35,
-    //         description: "Faster, slower"
-    //       },
-    //       attendees: 0,
-    //       engagement: {
-    //         positive: 50,
-    //         negative: 50,
-    //         average: 0
-    //       }
-    //     }
-    //   }
-    // };
   }),
   /* Session Passthrough Route */
   router.get("/:sessionId", (req, res) => {

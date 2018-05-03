@@ -8,7 +8,7 @@ const presentationSchema = mongoose.Schema(
     sessionId: { type: String, unique: true, required: true },
     name: { type: String, required: true },
     description: { type: String, required: false },
-    settings: { type: Object, default: {} },
+    hasEnded: { type: Boolean, default: false },
 
     /* TODO: split these into a sections array */
     data: [{ timeStamp: String, value: Object }]
