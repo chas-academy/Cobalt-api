@@ -91,6 +91,8 @@ export const makeOnPresenterPayload = (
 
     presentations[payload.session].data = payload.payload;
 
+    const numOfAttendees = payload.payload.attendees;
+
     io.sockets
       .in(payload.session)
       .emit("updateClient", socketMethods.passClientData(payload.session));
@@ -106,7 +108,10 @@ export const makeOnPresenterPayload = (
       delete io.nsps[payload.session]; // Remove from the server namespaces
 
       dbActions
-        .endPresentation(presentations[payload.session].presentationId)
+        .endPresentation(
+          presentations[payload.session].presentationId,
+          numOfAttendees
+        )
         .then(console.log)
         .catch(console.error);
     }
