@@ -21,7 +21,7 @@ services:
   database:
     image: mongo:latest
     volumes:
-      - data:/data/db
+      - database:/database/db
     env_file:
       - .env.dev
     networks:
