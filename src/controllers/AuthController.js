@@ -37,7 +37,12 @@ router.post("/", passport.authenticate("local"), (req, res) => {
 
   res.json(200, {
     success: true,
-    user: strip(req.user.toObject(), "password")
+    user: strip(req.user.toObject(), "password"),
+    message: {
+      type: "success",
+      title: "Logged in successfully",
+      body: `Welcome back ${req.user.name} and good luck!`
+    }
   });
 });
 
