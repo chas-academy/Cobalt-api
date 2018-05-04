@@ -215,6 +215,19 @@ const endPresentation = id =>
     );
   });
 
+const getPresentationAuthor = sessionId =>
+  new Promise((resolve, reject) => {
+    return Presentation.findOne({ sessionId: sessionId })
+      .select("author sessionId")
+      .exec((err, presentation) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(presentation);
+      });
+  });
+
 const createNewPresentation = asyncPipe(
   doesNotExceedSimultaneousPresentations,
   createPresentation
@@ -231,5 +244,6 @@ export {
   savePresentationValues,
   getPresentation,
   endPresentation,
+  getPresentationAuthor,
   addWorkspaceToUser
 };

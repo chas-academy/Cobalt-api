@@ -17,6 +17,7 @@ const SocketMethodsFactory = (io, presentations /* should be DB */) => {
     (presentations[sessionId] = {
       session: io.of(sessionId),
       presentationId: presentationId,
+      owner: undefined,
       attendees: new Map(),
       data: {
         sessionId: sessionId,
@@ -112,6 +113,9 @@ const SocketMethodsFactory = (io, presentations /* should be DB */) => {
       }
     );
 
+  const setPresentationOwner = (presentations, sessionId, socketId) =>
+    (presentations[sessionId].owner = socketId);
+
   return {
     sessionExists: sessionExists.bind(null, presentations),
     sessionHasEnded: sessionHasEnded.bind(null, presentations),
@@ -127,7 +131,8 @@ const SocketMethodsFactory = (io, presentations /* should be DB */) => {
       presentations,
       io
     ),
-    passClientData: passClientData.bind(null, presentations)
+    passClientData: passClientData.bind(null, presentations),
+    setPresentationOwner: setPresentationOwner.bind(null, presentations)
   };
 };
 
