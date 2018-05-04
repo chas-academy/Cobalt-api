@@ -97,18 +97,6 @@ const createPresentation = ({
   sessionId,
   name = "Presentation Default Name",
   description = "Presentation Default Description"
-  // settings = {
-  //   isStopped: false,
-  //   isPaused: false,
-  //   hasStarted: false,
-  //   isAverage: true,
-  //   maxAttendees: 50,
-  //   threshold: 35,
-  //   engagementDescription: {
-  //     up: "Positive",
-  //     down: "Negative"
-  //   }
-  // }
 }) => {
   return new Promise((resolve, reject) => {
     return Presentation.create(
@@ -119,7 +107,6 @@ const createPresentation = ({
 
         name: name,
         description: description
-        // settings: settings
       },
       (err, presentation) => {
         if (err) {
@@ -243,6 +230,7 @@ export {
   createNewPresentation,
   savePresentationValues,
   getPresentation,
+  getPresentationAuthor,
   endPresentation,
   getPresentationAuthor,
   addWorkspaceToUser

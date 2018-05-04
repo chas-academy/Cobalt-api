@@ -46,7 +46,11 @@ export const makeOnAttendeePayload = (io, presentations, socketMethods) =>
       return;
     }
 
-    if (presentations[session].data.status.isPaused) return;
+    if (
+      presentations[session].data.status.isPaused ||
+      !presentations[session].data.status.hasStarted
+    )
+      return;
 
     /* Update the attendees engagement value */
     socketMethods.updateAttendee(session, socket.id, payload);
@@ -143,7 +147,7 @@ export const makeOnDisconnectHandler = (io, presentations, socketMethods) =>
     const attendeeId = socket.id;
     // The attendees connected presentations
     const attendeePresentations = Object.values(
-      Object.assign({}, socket.presentations)
+      Object.assign({}, socket.rooms)
     );
 
     // Loop over all of the presentations the attendee is connected to
@@ -152,6 +156,7 @@ export const makeOnDisconnectHandler = (io, presentations, socketMethods) =>
       if (sessionId !== attendeeId) {
         // Remove the attendee from the attendees list
         presentations[sessionId].attendees.delete(attendeeId);
+
         // Update the presentations number of attendees
         presentations[
           sessionId
