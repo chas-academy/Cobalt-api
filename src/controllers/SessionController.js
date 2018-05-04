@@ -44,8 +44,8 @@ const WrappedSessionController = socketMethods => (
       });
   }),
   /* Session Passthrough Route */
-  router.get("/:sessionId", (req, res) => {
-    const { sessionId } = req.params;
+  router.get("/:sessionId/:socketId", (req, res) => {
+    const { sessionId, socketId } = req.params;
 
     if (!socketMethods.sessionExists(sessionId)) {
       return res.status(404).json({
@@ -54,13 +54,32 @@ const WrappedSessionController = socketMethods => (
       });
     }
 
-    // if (req.user) {
-    //   const { _id } = req.user;
+    if (req.user) {
+      dbActions
+        .getPresentationAuthor(sessionId)
+        .then(presentation => {
+          if (presentation.author === req.user._id) {
+            socketMethods.setPresentationOwner(sessionId, socketId);
+          }
 
-    //   dbActions.checkIfUserOwnsPresentation(_id).then(res => {
-    //     socketMethods.setOwner()
-    //   })
-    // }
+          res.status(200).json({
+            success: true,
+            message: {
+              type: "success",
+              body: "Good luck!"
+            }
+          });
+        })
+        .catch(err => {
+          res.status(500).json({
+            success: false,
+            message: {
+              type: "warning",
+              body: "You're not the owner of this presentation."
+            }
+          });
+        });
+    }
 
     res.status(200).json({
       success: true,

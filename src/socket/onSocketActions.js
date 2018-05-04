@@ -79,6 +79,8 @@ export const makeOnPresenterPayload = (
     console.log("presenterPayload", payload);
     const socket = this;
 
+    if (socket.id !== presentations[payload.session].owner) return;
+
     presentations[payload.session].data = payload.payload;
 
     if (
