@@ -17,6 +17,7 @@ const SocketMethodsFactory = (io, presentations /* should be DB */) => {
     (presentations[sessionId] = {
       session: io.of(sessionId),
       presentationId: presentationId,
+      owner: undefined,
       attendees: new Map(),
       data: {
         sessionId: sessionId,
@@ -112,6 +113,16 @@ const SocketMethodsFactory = (io, presentations /* should be DB */) => {
       }
     );
 
+<<<<<<< Updated upstream
+=======
+  const setPresentationOwner = (presentations, sessionId, socketId) => {
+    console.log("setting presetntation owner", presentations[sessionId]);
+
+    presentations[sessionId].owner = socketId;
+    console.log("should be set", presentations[sessionId]);
+  };
+
+>>>>>>> Stashed changes
   return {
     sessionExists: sessionExists.bind(null, presentations),
     sessionHasEnded: sessionHasEnded.bind(null, presentations),

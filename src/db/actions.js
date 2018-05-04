@@ -215,6 +215,22 @@ const endPresentation = id =>
     );
   });
 
+<<<<<<< Updated upstream
+=======
+const getPresentationAuthor = sessionId =>
+  new Promise((resolve, reject) => {
+    return Presentation.findOne({ sessionId: sessionId })
+      .select("author sessionId")
+      .exec((err, presentation) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(presentation);
+      });
+  });
+
+>>>>>>> Stashed changes
 const createNewPresentation = asyncPipe(
   doesNotExceedSimultaneousPresentations,
   createPresentation
