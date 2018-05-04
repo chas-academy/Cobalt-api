@@ -39,7 +39,11 @@ const WrappedSessionController = socketMethods => (
         console.log(err);
         res.status(500).json({
           success: false,
-          message: "There was an error creating your presentation."
+          message: {
+            type: "danger",
+            title: "Could not create presentation",
+            message: "There was an error creating your presentation."
+          }
         });
       });
   }),
@@ -50,7 +54,12 @@ const WrappedSessionController = socketMethods => (
     if (!socketMethods.sessionExists(sessionId)) {
       return res.status(404).json({
         success: false,
-        message: "No session found for that URL."
+        message: {
+          type: "warning",
+          title: "No presentation found",
+          message:
+            "Could not find an ongoing presentation with that ID. Did you type it correctly?"
+        }
       });
     }
 
@@ -66,6 +75,7 @@ const WrappedSessionController = socketMethods => (
               success: true,
               message: {
                 type: "success",
+                title: "Presentation created successfully",
                 body: "Good luck!"
               }
             });
@@ -75,6 +85,7 @@ const WrappedSessionController = socketMethods => (
             success: false,
             message: {
               type: "warning",
+              title: "Wrong owner",
               body: "You're not the owner of this presentation."
             }
           });
@@ -85,6 +96,7 @@ const WrappedSessionController = socketMethods => (
             success: false,
             message: {
               type: "warning",
+              title: "Wrong owner",
               body: "You're not the owner of this presentation."
             }
           });
@@ -94,6 +106,7 @@ const WrappedSessionController = socketMethods => (
         success: false,
         message: {
           type: "warning",
+          title: "Not authorised",
           body: "You don't belong here!"
         }
       });

@@ -35,13 +35,22 @@ router.post("/", (req, res) => {
     .then(user =>
       res.status(200).json({
         success: true,
-        user
+        user,
+        message: {
+          type: "success",
+          title: "Registered successfully",
+          body: "You've been registered successfully. Enjoy!"
+        }
       })
     )
     .catch(err =>
       res.status(500).json({
         success: false,
-        message: err.message
+        message: {
+          type: "danger",
+          title: "Registration unsuccessful",
+          body: "There was an error while registering your account."
+        }
       })
     );
 });
