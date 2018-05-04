@@ -4,7 +4,7 @@ export const makeJoinSessionHandler = (io, presentations, socketMethods) =>
     const socket = this;
 
     console.log("onJoinSession", sessionId);
-    console.log(presentations[sessionId]);
+    console.log("presentationObj", presentations[sessionId]);
 
     if (
       !socketMethods.sessionExists(sessionId) ||
@@ -81,8 +81,6 @@ export const makeOnPresenterPayload = (
 
     if (socket.id !== presentations[payload.session].owner) return;
 
-    presentations[payload.session].data = payload.payload;
-
     if (
       !socketMethods.sessionExists(payload.session) ||
       socketMethods.sessionHasEnded(payload.session)
@@ -91,10 +89,13 @@ export const makeOnPresenterPayload = (
       return;
     }
 
+    presentations[payload.session].data = payload.payload;
+
     io.sockets
       .in(payload.session)
       .emit("updateClient", socketMethods.passClientData(payload.session));
 
+    // Shut down the Socket Connection and update the DB status to hasEnded
     if (payload.payload.status.hasEnded) {
       const presentationNSP = io.of(payload.session); // Get Namespace
       const connectedNameSpaceSockets = Object.keys(presentationNSP.connected); // Get Object with Connected SocketIds as properties
@@ -119,6 +120,8 @@ export const makeOnPresenterSavePolling = (
 ) =>
   function onPresenterSavePolling(payload) {
     console.log("presenterRequestsSave", payload);
+
+    const socket = this;
 
     if (
       !socketMethods.sessionExists(payload.sessionId) ||

@@ -17,6 +17,7 @@ const SocketMethodsFactory = (io, presentations /* should be DB */) => {
     (presentations[sessionId] = {
       session: io.of(sessionId),
       presentationId: presentationId,
+      owner: undefined,
       attendees: new Map(),
       data: {
         sessionId: sessionId,
@@ -112,7 +113,7 @@ const SocketMethodsFactory = (io, presentations /* should be DB */) => {
       }
     );
 
-  const setPresentationOwner = (sessionId, socketId) =>
+  const setPresentationOwner = (presentations, sessionId, socketId) =>
     (presentations[sessionId].owner = socketId);
 
   return {

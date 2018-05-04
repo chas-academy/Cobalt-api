@@ -211,7 +211,7 @@ const getPresentationAuthor = sessionId =>
           return reject(err);
         }
 
-        resolve(presentation);
+        return resolve(presentation);
       });
   });
 
@@ -232,5 +232,6 @@ export {
   getPresentation,
   getPresentationAuthor,
   endPresentation,
+  getPresentationAuthor,
   addWorkspaceToUser
 };
