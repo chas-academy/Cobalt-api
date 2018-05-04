@@ -58,17 +58,6 @@ const WrappedSessionController = socketMethods => (
       dbActions
         .getPresentationAuthor(sessionId)
         .then(presentation => {
-<<<<<<< 14-hotfix/socket-sessions
-          if (presentation.author === req.user._id) {
-            socketMethods.setPresentationOwner(sessionId, socketId);
-          }
-
-          res.status(200).json({
-            success: true,
-            message: {
-              type: "success",
-              body: "Good luck!"
-=======
           if (presentation.author.toString() == req.user._id) {
             console.log("author is user");
             socketMethods.setPresentationOwner(sessionId, socketId);
@@ -87,15 +76,11 @@ const WrappedSessionController = socketMethods => (
             message: {
               type: "warning",
               body: "You're not the owner of this presentation."
->>>>>>> develop
             }
           });
         })
         .catch(err => {
-<<<<<<< 14-hotfix/socket-sessions
-=======
           console.log(err);
->>>>>>> develop
           res.status(500).json({
             success: false,
             message: {
@@ -104,14 +89,6 @@ const WrappedSessionController = socketMethods => (
             }
           });
         });
-<<<<<<< 14-hotfix/socket-sessions
-    }
-
-    res.status(200).json({
-      success: true,
-      session: sessionId
-    });
-=======
     } else {
       res.status(500).json({
         success: false,
@@ -121,7 +98,6 @@ const WrappedSessionController = socketMethods => (
         }
       });
     }
->>>>>>> develop
   })
 );
 
