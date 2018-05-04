@@ -32,7 +32,12 @@ const WrappedSessionController = socketMethods => (
 
         res.status(200).json({
           success: true,
-          presentation: presentation
+          presentation: presentation,
+          message: {
+            type: "success",
+            title: "Session was created successfully.",
+            body: "Good luck!"
+          }
         });
       })
       .catch(err => {
@@ -41,8 +46,9 @@ const WrappedSessionController = socketMethods => (
           success: false,
           message: {
             type: "danger",
-            title: "Could not create presentation",
-            message: "There was an error creating your presentation."
+            title: "Presentation was not created",
+            message:
+              "There was a problem creating your session. Please try again."
           }
         });
       });
@@ -58,7 +64,7 @@ const WrappedSessionController = socketMethods => (
           type: "warning",
           title: "No presentation found",
           message:
-            "Could not find an ongoing presentation with that ID. Did you type it correctly?"
+            "We couldn't find an ongoing presentation with that ID. Did you type it correctly?"
         }
       });
     }
