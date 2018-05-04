@@ -187,11 +187,14 @@ const getPresentation = id =>
     });
   });
 
-const endPresentation = id =>
+const endPresentation = (id, attendees) =>
   new Promise((resolve, reject) => {
     return Presentation.findByIdAndUpdate(
       id,
-      { hasEnded: true },
+      {
+        hasEnded: true,
+        attendees: attendees
+      },
       (err, presentation) => {
         if (err) {
           return reject(err);

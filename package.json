@@ -11,8 +11,7 @@
   "bugs": {
     "url": "https://github.com/chas-academy/chas-academy/Cobalt-api/issues"
   },
-  "homepage":
-    "https://github.com/chas-academy/chas-academy/Cobalt-api/tree/master",
+  "homepage": "https://github.com/chas-academy/chas-academy/Cobalt-api/tree/master",
   "dependencies": {
     "bcrypt": "^2.0.1",
     "body-parser": "~1.0.1",

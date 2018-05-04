@@ -97,6 +97,8 @@ export const makeOnPresenterPayload = (
 
     // Shut down the Socket Connection and update the DB status to hasEnded
     if (payload.payload.status.hasEnded) {
+      const numOfAttendees = presentations[payload.session].data.attendees;
+
       const presentationNSP = io.of(payload.session); // Get Namespace
       const connectedNameSpaceSockets = Object.keys(presentationNSP.connected); // Get Object with Connected SocketIds as properties
       connectedNameSpaceSockets.forEach(socketId => {
@@ -106,7 +108,10 @@ export const makeOnPresenterPayload = (
       delete io.nsps[payload.session]; // Remove from the server namespaces
 
       dbActions
-        .endPresentation(presentations[payload.session].presentationId)
+        .endPresentation(
+          presentations[payload.session].presentationId,
+          numOfAttendees
+        )
         .then(console.log)
         .catch(console.error);
     }
