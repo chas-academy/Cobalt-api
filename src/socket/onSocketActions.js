@@ -39,8 +39,8 @@ export const makeOnAttendeePayload = (io, presentations, socketMethods) =>
     console.log("attendeePayload", session, payload);
 
     if (
-      !socketMethods.sessionExists(sessionId) ||
-      socketMethods.sessionHasEnded(sessionId)
+      !socketMethods.sessionExists(session) ||
+      socketMethods.sessionHasEnded(session)
     ) {
       socket.disconnect();
       return;
