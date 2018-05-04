@@ -232,6 +232,5 @@ export {
   getPresentation,
   getPresentationAuthor,
   endPresentation,
-  getPresentationAuthor,
   addWorkspaceToUser
 };
