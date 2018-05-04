@@ -75,11 +75,7 @@ export const makeOnPresenterPayload = (
     console.log("presenterPayload", payload);
     const socket = this;
 
-<<<<<<< Updated upstream
-    presentations[payload.session].data = payload.payload;
-=======
     if (socket.id !== presentations[payload.session].owner) return;
->>>>>>> Stashed changes
 
     if (
       !socketMethods.sessionExists(payload.session) ||

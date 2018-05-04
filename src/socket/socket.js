@@ -113,16 +113,9 @@ const SocketMethodsFactory = (io, presentations /* should be DB */) => {
       }
     );
 
-<<<<<<< Updated upstream
-=======
-  const setPresentationOwner = (presentations, sessionId, socketId) => {
-    console.log("setting presetntation owner", presentations[sessionId]);
+  const setPresentationOwner = (presentations, sessionId, socketId) =>
+    (presentations[sessionId].owner = socketId);
 
-    presentations[sessionId].owner = socketId;
-    console.log("should be set", presentations[sessionId]);
-  };
-
->>>>>>> Stashed changes
   return {
     sessionExists: sessionExists.bind(null, presentations),
     sessionHasEnded: sessionHasEnded.bind(null, presentations),
@@ -138,7 +131,8 @@ const SocketMethodsFactory = (io, presentations /* should be DB */) => {
       presentations,
       io
     ),
-    passClientData: passClientData.bind(null, presentations)
+    passClientData: passClientData.bind(null, presentations),
+    setPresentationOwner: setPresentationOwner.bind(null, presentations)
   };
 };
 

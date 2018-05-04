@@ -44,8 +44,8 @@ const WrappedSessionController = socketMethods => (
       });
   }),
   /* Session Passthrough Route */
-  router.get("/:sessionId", (req, res) => {
-    const { sessionId } = req.params;
+  router.get("/:sessionId/:socketId", (req, res) => {
+    const { sessionId, socketId } = req.params;
 
     if (!socketMethods.sessionExists(sessionId)) {
       return res.status(404).json({
@@ -54,12 +54,6 @@ const WrappedSessionController = socketMethods => (
       });
     }
 
-<<<<<<< Updated upstream
-    res.status(200).json({
-      success: true,
-      session: sessionId
-    });
-=======
     if (req.user) {
       dbActions
         .getPresentationAuthor(sessionId)
@@ -104,7 +98,6 @@ const WrappedSessionController = socketMethods => (
         }
       });
     }
->>>>>>> Stashed changes
   })
 );
 

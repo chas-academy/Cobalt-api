@@ -215,8 +215,6 @@ const endPresentation = id =>
     );
   });
 
-<<<<<<< Updated upstream
-=======
 const getPresentationAuthor = sessionId =>
   new Promise((resolve, reject) => {
     return Presentation.findOne({ sessionId: sessionId })
@@ -230,7 +228,6 @@ const getPresentationAuthor = sessionId =>
       });
   });
 
->>>>>>> Stashed changes
 const createNewPresentation = asyncPipe(
   doesNotExceedSimultaneousPresentations,
   createPresentation
@@ -247,5 +244,6 @@ export {
   savePresentationValues,
   getPresentation,
   endPresentation,
+  getPresentationAuthor,
   addWorkspaceToUser
 };
