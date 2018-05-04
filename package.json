@@ -33,6 +33,7 @@
     "shortid": "^2.2.8"
   },
   "scripts": {
+    "build": "babel src -d dist",
     "start": "nodemon --exec babel-node src/server.js",
     "test": "jest"
   }
