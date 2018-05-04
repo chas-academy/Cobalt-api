@@ -1,0 +1,41 @@
+version: '3.5'
+
+services:
+  api:
+    image: registry.chas.school/cobalt-api-staging:latest
+    working_dir: /app
+    command: node dist/server.js
+    depends_on:
+      - database
+    env_file:
+      - .env.staging
+    networks:
+      - traefik
+      - backend
+    deploy:
+      labels:
+        traefik.port: '7770'
+        traefik.backend: 'cobalt_staging'
+        traefik.docker.network: 'traefik'
+        traefik.frontend.rule: 'Host:cobalt-api-staging.chas.school'
+  # CHANGE ME TO MONGO
+  database:
+    image: 'postgres:9.6'
+    volumes:
+      - 'database:/var/lib/postgresql/data'
+    env_file:
+      - .env.staging
+    networks:
+      - backend
+    deploy:
+      labels:
+        traefik.enable: 'false'
+
+volumes:
+  database:
+
+networks:
+  traefik:
+    external: true
+  backend:
+    external: false
