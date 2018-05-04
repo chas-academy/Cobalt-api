@@ -32,14 +32,24 @@ const WrappedSessionController = socketMethods => (
 
         res.status(200).json({
           success: true,
-          presentation: presentation
+          presentation: presentation,
+          message: {
+            type: "success",
+            title: "Session was created successfully.",
+            body: "Good luck!"
+          }
         });
       })
       .catch(err => {
         console.log(err);
         res.status(500).json({
           success: false,
-          message: "There was an error creating your presentation."
+          message: {
+            type: "danger",
+            title: "Presentation was not created",
+            message:
+              "There was a problem creating your session. Please try again."
+          }
         });
       });
   }),
@@ -50,7 +60,12 @@ const WrappedSessionController = socketMethods => (
     if (!socketMethods.sessionExists(sessionId)) {
       return res.status(404).json({
         success: false,
-        message: "No session found for that URL."
+        message: {
+          type: "warning",
+          title: "No presentation found",
+          message:
+            "We couldn't find an ongoing presentation with that ID. Did you type it correctly?"
+        }
       });
     }
 
@@ -66,6 +81,7 @@ const WrappedSessionController = socketMethods => (
               success: true,
               message: {
                 type: "success",
+                title: "Presentation created successfully",
                 body: "Good luck!"
               }
             });
@@ -75,6 +91,7 @@ const WrappedSessionController = socketMethods => (
             success: false,
             message: {
               type: "warning",
+              title: "Wrong owner",
               body: "You're not the owner of this presentation."
             }
           });
@@ -85,6 +102,7 @@ const WrappedSessionController = socketMethods => (
             success: false,
             message: {
               type: "warning",
+              title: "Wrong owner",
               body: "You're not the owner of this presentation."
             }
           });
@@ -94,6 +112,7 @@ const WrappedSessionController = socketMethods => (
         success: false,
         message: {
           type: "warning",
+          title: "Not authorised",
           body: "You don't belong here!"
         }
       });
