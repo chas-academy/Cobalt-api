@@ -8,12 +8,22 @@ const router = express.Router();
 
 // Read
 router.get("/:userId", (req, res) => {
-  res.status(200).json({
-    success: true,
-    user: {
-      coolBeans: true
-    }
-  });
+  const { _id } = req.user;
+
+  dbActions
+    .getUserData(_id)
+    .then(user =>
+      res.status(200).json({
+        success: true,
+        user
+      })
+    )
+    .catch(err =>
+      res.status(500).json({
+        success: false,
+        message: err.message
+      })
+    );
 });
 
 /* Create User Pipe */
