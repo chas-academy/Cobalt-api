@@ -18,13 +18,12 @@ services:
         traefik.backend: 'cobalt'
         traefik.docker.network: 'traefik'
         traefik.frontend.rule: 'Host:cobalt-api.chas.school'
-  # CHANGE ME TO MONGO
   database:
-    image: 'postgres:9.6'
+    image: mongo:latest
     volumes:
-      - 'database:/var/lib/postgresql/data'
+      - database:/database/db
     env_file:
-      - .env
+      - .env.dev
     networks:
       - backend
     deploy:
