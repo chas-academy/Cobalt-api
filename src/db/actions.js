@@ -59,6 +59,9 @@ const getUserData = id => {
 
         return resolve(user);
       });
+    });
+  };
+
 /* Update Userinfo */
 const updateUser = userData => {
   console.log(userData);
@@ -66,13 +69,9 @@ const updateUser = userData => {
     return User.findByIdAndUpdate(
       userData.id,
       {
-      $push: {
-        User: {
-          name: userData.name,
-          email: userData.email,
-          password: userData.password
-        }
-      }
+        name: userData.name,
+        email: userData.email,
+        password: userData.password
       },
       { new: true },
       (err, user) => {
