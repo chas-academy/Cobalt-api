@@ -4,11 +4,10 @@ const router = express.Router();
 
 /* Utils */
 import shortid from "shortid";
+import { asyncPipe } from "../utils/fp";
 
 import { presentations } from "../socket/socket";
-
 import { requireLogin } from "../middleware";
-
 import * as dbActions from "../db/actions";
 
 const WrappedSessionController = socketMethods => (
@@ -120,11 +119,16 @@ const WrappedSessionController = socketMethods => (
   })
 );
 
+/* Delete presentation pipe */
+const deletePresentation = asyncPipe(
+  dbActions.deletePresentationItem,
+  dbActions.removePresentationRef
+);
+
 router.delete("/:presentationId", (req, res) => {
   const { presentationId } = req.params;
 
-  dbActions
-    .deletePresentation(presentationId)
+  deletePresentation(presentationId)
     .then(presentation => {
       return res.status(200).json({
         success: true,
