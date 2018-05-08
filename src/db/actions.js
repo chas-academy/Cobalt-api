@@ -157,17 +157,14 @@ const deletePresentationItem = presentationId => {
 };
 
 const removePresentationRef = presentation => {
-  console.log(presentation._id);
   return new Promise((resolve, reject) => {
     return Workspace.findOneAndUpdate(
       { presentations: presentation._id },
       { $pull: { presentations: presentation._id } },
       (err, workspace) => {
         if (err) {
-          console.log("error:", err);
           return reject(err);
         }
-        console.log("workspace: ", workspace);
         return resolve(workspace);
       }
     );

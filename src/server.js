@@ -6,6 +6,7 @@ import session from "express-session";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import morgan from "morgan";
 
 /* SocketIO */
 import socketIO from "socket.io";
@@ -30,6 +31,8 @@ app.use(
     methods: "GET, POST, PATCH, PUT, DELETE, OPTIONS"
   })
 );
+
+app.use(morgan("dev"));
 
 app.use(bodyParser.json());
 app.use(cookieParser());
