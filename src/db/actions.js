@@ -59,28 +59,29 @@ const getUserData = id => {
 
         return resolve(user);
       });
-    });
-  };
+  });
+};
 
 /* Update Userinfo */
 const updateUser = userData => {
-  console.log(userData);
   return new Promise((resolve, reject) => {
-    return User.findByIdAndUpdate(
-      userData.id,
-      {
-        name: userData.name,
-        email: userData.email,
-        password: userData.password
-      },
-      { new: true },
-      (err, user) => {
-        if (err) {
-          return reject(err);
-        }
-        return resolve(user);
+    return User.findById(userData.id, (err, user) => {
+      if (err) {
+        return reject(err);
       }
-    );
+      if (userData.password.length > 6) {
+        user.password = userData.password;
+      }
+      if (userData.email !== "") {
+        user.email = userData.email;
+      }
+      if (userData.name !== "") {
+        user.name = userData.name;
+      }
+      user.save();
+
+      return resolve(user);
+    });
   });
 };
 
@@ -96,7 +97,6 @@ const createUser = userData => {
         if (err) {
           return reject(err);
         }
-
         return resolve(user);
       }
     );

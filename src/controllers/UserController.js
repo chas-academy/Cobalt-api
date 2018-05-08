@@ -69,8 +69,8 @@ router.post("/", (req, res) => {
 
 // Update User
 router.put("/", (req, res) => {
-  const { email, name, password, id } = req.body;
-
+  const { email, name, password } = req.body;
+  const id = req.user.id;
   updateUser({
     email,
     name,
