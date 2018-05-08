@@ -59,6 +59,29 @@ const getUserData = id => {
 
         return resolve(user);
       });
+/* Update Userinfo */
+const updateUser = userData => {
+  console.log(userData);
+  return new Promise((resolve, reject) => {
+    return User.findByIdAndUpdate(
+      userData.id,
+      {
+      $push: {
+        User: {
+          name: userData.name,
+          email: userData.email,
+          password: userData.password
+        }
+      }
+      },
+      { new: true },
+      (err, user) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(user);
+      }
+    );
   });
 };
 
@@ -428,10 +451,5 @@ export {
   getPresentationAuthor,
   endPresentation,
   addWorkspaceToUser,
-  addUserToWorkspace,
-  removeWorkspaceFromUser,
-  removeUserFromWorkspace,
-  workspaceHasUser,
-  getWorkspaces,
-  getWorkspaceMembers
+  updateUser
 };

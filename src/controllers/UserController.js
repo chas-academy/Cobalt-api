@@ -33,6 +33,8 @@ const createUserWithWorkspace = asyncPipe(
   dbActions.addWorkspaceToUser
 );
 
+const updateUser = asyncPipe(dbActions.updateUser);
+
 // Create
 router.post("/", (req, res) => {
   const { email, name, password } = req.body;
@@ -61,6 +63,30 @@ router.post("/", (req, res) => {
           title: "Registration unsuccessful",
           body: "There was an error while registering your account."
         }
+      })
+    );
+});
+
+// Update User
+router.put("/", (req, res) => {
+  const { email, name, password, id } = req.body;
+
+  updateUser({
+    email,
+    name,
+    password,
+    id
+  })
+    .then(user => {
+      res.status(200).json({
+        success: true,
+        user
+      });
+    })
+    .catch(err =>
+      res.status(500).json({
+        success: false,
+        message: err.message
       })
     );
 });
