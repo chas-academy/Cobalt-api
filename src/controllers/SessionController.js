@@ -120,4 +120,32 @@ const WrappedSessionController = socketMethods => (
   })
 );
 
+router.delete("/:presentationId", (req, res) => {
+  const { presentationId } = req.params;
+
+  dbActions
+    .deletePresentation(presentationId)
+    .then(presentation => {
+      return res.status(200).json({
+        success: true,
+        message: {
+          type: "success",
+          title: "Session deleted",
+          body: "Session was successfully deleted"
+        }
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      return res.status(500).json({
+        success: false,
+        message: {
+          type: "warning",
+          title: "Session not found",
+          body: "Couldn't find a session with that id."
+        }
+      });
+    });
+});
+
 export default WrappedSessionController;

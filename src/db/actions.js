@@ -141,6 +141,21 @@ const createPresentation = ({
   });
 };
 
+const deletePresentation = presentationId => {
+  return new Promise((resolve, reject) => {
+    return Presentation.findByIdAndRemove(
+      presentationId,
+      (err, presentation) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(presentation);
+      }
+    );
+  });
+};
+
 const getPersonalWorkspace = userId => {
   return new Promise((resolve, reject) => {
     return Workspace.findOne(
@@ -253,6 +268,7 @@ export {
   createPresentation,
   getPersonalWorkspace,
   createNewPresentation,
+  deletePresentation,
   savePresentationValues,
   getPresentation,
   getPresentationAuthor,
