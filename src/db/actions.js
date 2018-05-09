@@ -63,21 +63,13 @@ const getUserData = id => {
 };
 
 /* Update Userinfo */
-const updateUser = userData => {
+const updateUser = (id, userData) => {
   return new Promise((resolve, reject) => {
-    return User.findById(userData.id, (err, user) => {
+    return User.findById(id, (err, user) => {
       if (err) {
         return reject(err);
       }
-      if (userData.password.length > 6) {
-        user.password = userData.password;
-      }
-      if (userData.email !== "") {
-        user.email = userData.email;
-      }
-      if (userData.name !== "") {
-        user.name = userData.name;
-      }
+      user.set(userData);
       user.save();
 
       return resolve(user);

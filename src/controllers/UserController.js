@@ -33,8 +33,6 @@ const createUserWithWorkspace = asyncPipe(
   dbActions.addWorkspaceToUser
 );
 
-const updateUser = asyncPipe(dbActions.updateUser);
-
 // Create
 router.post("/", (req, res) => {
   const { email, name, password } = req.body;
@@ -69,14 +67,11 @@ router.post("/", (req, res) => {
 
 // Update User
 router.put("/", (req, res) => {
-  const { email, name, password } = req.body;
+  const data = req.body;
   const id = req.user.id;
-  updateUser({
-    email,
-    name,
-    password,
-    id
-  })
+
+  dbActions
+    .updateUser(id, data)
     .then(user => {
       res.status(200).json({
         success: true,
