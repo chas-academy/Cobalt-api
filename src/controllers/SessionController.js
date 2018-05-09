@@ -4,11 +4,10 @@ const router = express.Router();
 
 /* Utils */
 import shortid from "shortid";
+import { asyncPipe } from "../utils/fp";
 
 import { presentations } from "../socket/socket";
-
 import { requireLogin } from "../middleware";
-
 import * as dbActions from "../db/actions";
 
 const WrappedSessionController = socketMethods => (
@@ -119,5 +118,38 @@ const WrappedSessionController = socketMethods => (
     }
   })
 );
+
+/* Delete presentation pipe */
+const deletePresentation = asyncPipe(
+  dbActions.deletePresentationItem,
+  dbActions.removePresentationRef
+);
+
+router.delete("/:presentationId", (req, res) => {
+  const { presentationId } = req.params;
+
+  deletePresentation(presentationId)
+    .then(presentation => {
+      return res.status(200).json({
+        success: true,
+        message: {
+          type: "success",
+          title: "Session deleted",
+          body: "Session was successfully deleted"
+        }
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      return res.status(500).json({
+        success: false,
+        message: {
+          type: "warning",
+          title: "Session not found",
+          body: "Couldn't find a session with that id."
+        }
+      });
+    });
+});
 
 export default WrappedSessionController;

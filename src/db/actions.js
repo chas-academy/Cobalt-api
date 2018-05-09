@@ -141,6 +141,36 @@ const createPresentation = ({
   });
 };
 
+const deletePresentationItem = presentationId => {
+  return new Promise((resolve, reject) => {
+    return Presentation.findByIdAndRemove(
+      presentationId,
+      (err, presentation) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(presentation);
+      }
+    );
+  });
+};
+
+const removePresentationRef = presentation => {
+  return new Promise((resolve, reject) => {
+    return Workspace.findOneAndUpdate(
+      { presentations: presentation._id },
+      { $pull: { presentations: presentation._id } },
+      (err, workspace) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(workspace);
+      }
+    );
+  });
+};
+
 const getPersonalWorkspace = userId => {
   return new Promise((resolve, reject) => {
     return Workspace.findOne(
@@ -253,6 +283,8 @@ export {
   createPresentation,
   getPersonalWorkspace,
   createNewPresentation,
+  deletePresentationItem,
+  removePresentationRef,
   savePresentationValues,
   getPresentation,
   getPresentationAuthor,
