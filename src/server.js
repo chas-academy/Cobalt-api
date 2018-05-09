@@ -1,42 +1,28 @@
+import http from "http";
+
+/* Express */
 import express from "express";
+import session from "express-session";
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
 import cors from "cors";
+import morgan from "morgan";
 
-import mongoose from "mongoose";
+/* SocketIO */
+import socketIO from "socket.io";
 
-if (!process.env.PORT) {
-  require("dotenv").config();
-}
+/* Services */
+import passport from "passport";
 
-if (!process.env.PORT) {
-  console.log("[api][port] 7770 set as default");
-  console.log("[api][header] Access-Control-Allow-Origin: * set as default");
-} else {
-  console.log("[api][node] Loaded ENV vars from .env file");
-  console.log(`[api][port] ${process.env.PORT}`);
-  console.log(
-    `[api][header] Access-Control-Allow-Origin: ${process.env.ALLOW_ORIGIN}`
-  );
-}
+/* DB Actions */
+import * as dbActions from "./db/actions";
 
-const DATABASE_CONNECTION = `mongodb://${
-  process.env.MONGO_INITDB_ROOT_USERNAME
-}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@${
-  process.env.MONGO_INITDB_DATABASE
-}`;
-
-mongoose.connect(DATABASE_CONNECTION);
-
-const db = mongoose.connection;
-
+/* Initialisation */
 const app = express();
-const port = process.env.PORT || 7770;
-const allowOrigin = process.env.ALLOW_ORIGIN || "*";
+const server = http.Server(app);
+const io = socketIO(server);
 
-app.listen(port, () => {
-  console.log("[api][listen] http://localhost:" + port);
-});
-
+/* Middleware */
 app.use(
   cors({
     origin: process.env.ALLOW_ORIGIN,
@@ -46,6 +32,80 @@ app.use(
   })
 );
 
-app.use(bodyParser.json());
+app.use(morgan("dev"));
 
+app.use(bodyParser.json());
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(
+  session({
+    secret: "cats",
+    cookie: { maxAge: 360 * 60 * 1000 },
+    resave: false,
+    saveUninitialized: false
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+/* Controllers */
+import UserController from "./controllers/UserController";
+import AuthController from "./controllers/AuthController";
+import SessionController from "./controllers/SessionController";
+
+/* Routes */
 app.get("/", (req, res) => res.send("Cobalt API"));
+
+/* Sockets */
+import { presentations, SocketMethodsFactory } from "./socket/socket";
+const socketMethods = SocketMethodsFactory(io, presentations);
+
+/* End-points */
+app.use("/api/user", UserController);
+app.use("/api/auth", AuthController);
+app.use("/api/session", SessionController(socketMethods));
+
+/* Socket Handling */
+import {
+  makeJoinSessionHandler,
+  makeOnAttendeePayload,
+  makeOnPresenterPayload,
+  makeOnPresenterSavePolling,
+  makeOnDisconnectHandler
+} from "./socket/onSocketActions";
+
+const onJoinSession = makeJoinSessionHandler(io, presentations, socketMethods);
+const onAttendeePayload = makeOnAttendeePayload(
+  io,
+  presentations,
+  socketMethods
+);
+const onPresenterPayload = makeOnPresenterPayload(
+  io,
+  presentations,
+  socketMethods,
+  dbActions
+);
+const onPresenterSavePolling = makeOnPresenterSavePolling(
+  io,
+  presentations,
+  socketMethods,
+  dbActions
+);
+const onDisconnect = makeOnDisconnectHandler(io, presentations, socketMethods);
+
+/* General client connection */
+io.on("connection", socket => {
+  socket.on("joinSession", onJoinSession);
+  socket.on("attendeePayload", onAttendeePayload);
+  socket.on("presenterPayload", onPresenterPayload);
+  socket.on("presenterRequestsSave", onPresenterSavePolling);
+  socket.on("disconnecting", onDisconnect);
+});
+
+/* Start */
+const port = process.env.PORT || 7770;
+
+server.listen(port, () =>
+  console.log("[api][listen] http://localhost:" + port)
+);
