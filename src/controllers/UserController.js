@@ -75,13 +75,22 @@ router.put("/", (req, res) => {
     .then(user => {
       res.status(200).json({
         success: true,
-        user
+        user,
+        message: {
+          type: "success",
+          title: "Success",
+          body: "You have successfully updated your info"
+        }
       });
     })
     .catch(err =>
       res.status(500).json({
         success: false,
-        message: err.message
+        message: {
+          type: "error",
+          title: "Something went wrong",
+          body: "Could not update userinfo"
+        }
       })
     );
 });
