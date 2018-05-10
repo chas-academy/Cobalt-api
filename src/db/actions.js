@@ -93,6 +93,67 @@ const createWorkspace = ({ _id: userId }, name = "Personal") => {
   });
 };
 
+const addUserToWorkspace = ({_id: userId}, workspaceId) => {
+  return new Promise((resolve, reject) => {
+    Workspace.findByIdAndUpdate(
+      workspaceId,
+      {
+        $push: { members: userId}
+      },
+      {
+        "new": true
+      },
+      (err, workspace) => {
+        if (err) {
+          return reject(err)
+        }
+
+        return resolve(workspace)
+      }
+    )
+  })
+}
+
+const removeUserFromWorkspace = (userId, workspaceId) => {
+  return new Promise((resolve, reject) => {
+    Workspace.findByIdAndUpdate(
+      workspaceId,
+      {
+        $pull: { members: userId}
+      },
+      {
+        "new": true
+      },
+      (err, workspace) => {
+        if (err) {
+          return reject(err)
+        }
+
+        return resolve(workspace)
+      }
+    )
+  })
+}
+
+const removeWorkspaceFromUser = (userId, workspaceId) => {
+  return new Promise((resolve, reject) => {
+    User.findByIdAndUpdate(
+      userId,
+      {
+        $pull: { workspaces: workspaceId}
+      },
+      (err, user) => {
+        if (err) {
+          return reject(err)
+        }
+
+        return resolve(user)
+      })
+  })
+}
+
+
+
 const addWorkspaceToUser = ({ owner, _id: workspaceId }) => {
   return new Promise((resolve, reject) => {
     User.findByIdAndUpdate(
@@ -289,5 +350,8 @@ export {
   getPresentation,
   getPresentationAuthor,
   endPresentation,
-  addWorkspaceToUser
+  addWorkspaceToUser,
+  addUserToWorkspace,
+  removeWorkspaceFromUser,
+  removeUserFromWorkspace
 };
