@@ -107,8 +107,27 @@ const addUserToWorkspace = ({_id: userId}, workspaceId) => {
         if (err) {
           return reject(err)
         }
-
+        
         return resolve(workspace)
+      }
+    )
+  })
+}
+
+const workspaceHasUser = ({_id: userId}, workspaceId) => {
+  return new Promise((resolve, reject) => {
+    Workspace.findById(
+      workspaceId,
+      {
+        members: { $elemMatch: { $eq: userId }}
+      },
+      (err, success) => {
+        if (err) {
+          return reject(err)
+        }
+
+        return resolve(Boolean(success.members.length))
+        
       }
     )
   })
@@ -353,5 +372,6 @@ export {
   addWorkspaceToUser,
   addUserToWorkspace,
   removeWorkspaceFromUser,
-  removeUserFromWorkspace
+  removeUserFromWorkspace,
+  workspaceHasUser
 };
