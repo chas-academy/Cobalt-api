@@ -50,36 +50,58 @@ router.post("/member", (req, res) => {
   dbActions
     .getUserFromEmail(email)
     .then(user => 
-      Promise.all([
-        dbActions.addUserToWorkspace(user, workspaceId),
-        dbActions.addWorkspaceToUser(Object.assign({}, { 
-          owner: user._id,
-          _id: workspaceId
-        }))
-      ]).then(([ workspace ]) => {
-        res.status(200).json({
-          success: true,
-          workspace,
-          message: {
-            type: "success",
-            title: "Add user to workspace successfully",
-            body: "The user have been added to the workspace."
+      dbActions.workspaceHasUser(user, workspaceId)
+        .then(exists => {
+          if(!exists) {
+            Promise.all([
+              dbActions.addUserToWorkspace(user, workspaceId),
+              dbActions.addWorkspaceToUser(Object.assign({}, {
+                owner: user._id,
+                _id: workspaceId
+              }))
+            ]).then(([ workspace ]) => {
+              res.status(200).json({
+                success: true,
+                workspace,
+                message: {
+                  type: "success",
+                  title: "Add user to workspace successfully",
+                  body: "The user have been added to the workspace."
+                }
+              })
+            })
+            .catch(err => {
+              res.status(500).json({
+                success: false,
+                message: {
+                  type: "danger",
+                  title: "Add user to workspace unsuccessful",
+                  body: "There was an error while trying to add the user the workspace."
+                }
+              })
+            });
+          } else {
+            res.status(500).json({
+              success: false,
+              message: {
+                type: "danger",
+                title: "User already exists in the workspace",
+                body: "User already exists in the workspace."
+              }
+            })
           }
+        }))
+        .catch(err => {
+          res.status(500).json({
+            success: false,
+            message: {
+              type: "danger",
+              title: "Add user to workspace unsuccessful",
+              body: "There was an error while trying to add the user the workspace."
+            }
+          })
         })
-      })
-    )
-    .catch(err => {
-      res.status(500).json({
-        success: false,
-        message: {
-          type: "danger",
-          title: "Add user to workspace unsuccessful",
-          body: "There was an error while trying to add the user the workspace."
-        }
-      })
-    }
-    )
-})
+});
 
 // Remove member
 router.delete("/member", (req, res) => {
