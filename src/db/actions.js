@@ -74,6 +74,22 @@ const createUser = userData => {
   });
 };
 
+const getWorkspaces = (workspaceIds) => {
+  return new Promise((resolve, reject) => {
+    return Workspace.find(
+    {
+      _id: { $in: workspaceIds }
+    },
+    (err, workspaces) => {
+      if(err) {
+        return reject(err);
+      }
+
+      return resolve(workspaces)
+    }
+  )})
+}
+
 const createWorkspace = ({ _id: userId }, name = "Personal") => {
   return new Promise((resolve, reject) => {
     return Workspace.create(
@@ -125,6 +141,8 @@ const workspaceHasUser = ({_id: userId}, workspaceId) => {
         if (err) {
           return reject(err)
         }
+
+        console.log(success)
 
         return resolve(Boolean(success.members.length))
         
@@ -180,7 +198,11 @@ const addWorkspaceToUser = ({ owner, _id: workspaceId }) => {
       {
         $push: { workspaces: workspaceId }
       },
+      {
+        new: true
+      },
       (err, user) => {
+        console.log(user)
         if (err) {
           return reject(err);
         }
@@ -373,5 +395,6 @@ export {
   addUserToWorkspace,
   removeWorkspaceFromUser,
   removeUserFromWorkspace,
-  workspaceHasUser
+  workspaceHasUser,
+  getWorkspaces
 };

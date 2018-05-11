@@ -12,31 +12,62 @@ import * as dbActions from "../db/actions";
 
 
 // Read
+router.get("/", (req, res) => {
+  console.log(req.user)
+      dbActions
+        .getWorkspaces(req.user.workspaces)
+        .then(workspaces => {
+          res.status(200).json({
+            success: true,
+            workspaces,
+            message: {
+              type: "success",
+              title: "Fetch workspaces successfully",
+              body: "Here are your workspaces."
+            }
+          })
+        })
+        .catch(err => {
+          res.status(500).json({
+            success: false,
+            message: {
+              type: "danger",
+              title: "Fetch workspaces unsuccessful",
+              body: "Something went wrong when fetching your workspaces."
+            }
+          })
+        })
+})
+
+
 
 // Create
 router.post("/", (req, res) => {
   const { name } = req.body;
 
-
   dbActions
-    .createWorkspace(req.user, name)
-    .then(workspace =>
+  .createWorkspace(req.user, name)
+    .then(workspace => {
+      dbActions.addWorkspaceToUser(Object.assign({}, {
+        owner: req.user._id,
+        _id: workspace._id
+      }))
       res.status(200).json({
         success: true,
         workspace,
         message: {
           type: "success",
-          title: "Add workspace successfully",
+          title: "Added workspace successfully",
           body: "Your new workspace has been added."
         }
       })
-    )
+    })
     .catch(err =>
       res.status(500).json({
         success: false,
         message: {
           type: "danger",
-          title: "Add workspace unsuccessful",
+          title: "Adding workspace unsuccessful",
           body: "There was an error while trying to add your new workspace."
         }
       })
@@ -45,7 +76,7 @@ router.post("/", (req, res) => {
 
 // Add member
 router.post("/member", (req, res) => {
-  const { email, _id: workspaceId } = req.body;
+  const { email, workspaceId } = req.body;
 
   dbActions
     .getUserFromEmail(email)
@@ -105,7 +136,7 @@ router.post("/member", (req, res) => {
 
 // Remove member
 router.delete("/member", (req, res) => {
-  const { userId, _id: workspaceId } = req.body;
+  const { userId, workspaceId } = req.body;
 
     Promise.all([
       dbActions.removeUserFromWorkspace(userId, workspaceId),
