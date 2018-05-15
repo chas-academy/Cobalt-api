@@ -90,13 +90,38 @@ const getWorkspaces = (workspaceIds) => {
   )})
 }
 
-const createWorkspace = ({ _id: userId }, name = "Personal") => {
+const getWorkspaceMembers = (memberIds) => {
+  return new Promise((resolve, reject) => {
+    return User.find(
+    {
+      _id: { $in: memberIds }
+    },
+    (err, users) => {
+      if(err) {
+        return reject(err);
+      }
+
+      return resolve(users)
+    }
+  )})
+}
+
+const createWorkspace = ({ _id: userId }, name = "Personal", type = "Personal") => {
+  const now = new Date();
+  let oneMonthFromNow = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
+
   return new Promise((resolve, reject) => {
     return Workspace.create(
       {
         owner: userId,
         name: name,
-        members: [userId]
+        members: [userId],
+        subscription: {
+          type: type,
+          price: "$29.99",
+          dateAdded: now,
+          expirationDate: oneMonthFromNow
+        }
       },
       (err, workspace) => {
         if (err) {
@@ -141,8 +166,6 @@ const workspaceHasUser = ({_id: userId}, workspaceId) => {
         if (err) {
           return reject(err)
         }
-
-        console.log(success)
 
         return resolve(Boolean(success.members.length))
         
@@ -396,5 +419,6 @@ export {
   removeWorkspaceFromUser,
   removeUserFromWorkspace,
   workspaceHasUser,
-  getWorkspaces
+  getWorkspaces,
+  getWorkspaceMembers
 };
