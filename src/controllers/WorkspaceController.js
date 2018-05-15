@@ -47,6 +47,7 @@ router.get("/info/:workspaceId", (req, res) => {
             res.status(200).json({
               success: true,
               members,
+              workspaceId: req.params.workspaceId,
               message: {
                 type: "success",
                 title: "Fetch workspace members successfully",
