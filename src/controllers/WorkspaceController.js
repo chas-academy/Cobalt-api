@@ -3,7 +3,6 @@ import express from "express";
 const router = express.Router();
 
 /* Utils */
-import shortid from "shortid";
 import { asyncPipe } from "../utils/fp";
 
 import { presentations } from "../socket/socket";
@@ -13,7 +12,6 @@ import * as dbActions from "../db/actions";
 
 // Read
 router.get("/", (req, res) => {
-  console.log(req.user)
       dbActions
         .getWorkspaces(req.user.workspaces)
         .then(workspaces => {
@@ -37,6 +35,46 @@ router.get("/", (req, res) => {
             }
           })
         })
+})
+
+router.get("/info/:workspaceId", (req, res) => {
+
+  dbActions
+    .getWorkspaces(req.params.workspaceId)
+      .then(workspace => {
+        dbActions.getWorkspaceMembers(workspace[0].members)
+          .then(members => {
+            res.status(200).json({
+              success: true,
+              members,
+              message: {
+                type: "success",
+                title: "Fetch workspace members successfully",
+                body: "Members in current selected workspace."
+              }
+            })
+          })
+          .catch(err => {
+            res.status(500).json({
+              success: false,
+              message: {
+                type: "danger",
+                title: "Fetch workspace members unsuccessful",
+                body: "Something went wrong when fetching members from current selected workspace."
+              }
+            })
+          })
+      })
+      .catch(err => {
+        res.status(500).json({
+          success: false,
+          message: {
+            type: "danger",
+            title: "Fetch workspaces unsuccessful",
+            body: "Something went wrong when fetching your workspaces."
+          }
+        })
+      })
 })
 
 
