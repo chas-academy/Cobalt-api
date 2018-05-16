@@ -114,6 +114,7 @@ router.post("/", (req, res) => {
 });
 
 // Add member
+// Should be rewritten to syncpipe when we've got the time for it
 router.post("/member", (req, res) => {
   const { email, workspaceId } = req.body;
 
@@ -162,17 +163,6 @@ router.post("/member", (req, res) => {
         }
       }))
       .catch(err => {
-        // res.statusMessage = "There was an error while trying to add the user the workspace."
-        // // res.type = "danger"
-        // res.body = {
-        //     success: false,
-        //     message: {
-        //       type: "danger",
-        //       title: "Add user to workspace unsuccessful",
-        //       body: "There was an error while trying to add the user the workspace."
-        //     }
-        // }
-        // res.status(500).end()
         res.status(500).json({
           success: false,
           message: {
