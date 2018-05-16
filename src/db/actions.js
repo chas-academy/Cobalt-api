@@ -15,26 +15,12 @@ const Presentation = require("../models/Presentation");
 const Workspace = require("../models/Workspace");
 
 /* TODO: Test if this actually throws an error */
-// const getUserFromEmail = (email, withPassword = false) => {
-//   return User.findOne({ email })
-//     .select(withPassword && "+password")
-//     .then(user => user)
-//     .catch(err => err);
-// };
-
 const getUserFromEmail = (email, withPassword = false) => {
   return new Promise((resolve, reject) => {
     return User.findOne({ email })
     .select(withPassword && "+password")
     .exec((err, user) => {
-      console.log("user", user)
-      
-      if (!user) {
-        console.log('no user')
-      }
-
       if (err) {
-        console.log("ERROR", err)
         return reject(err)
       }
 
