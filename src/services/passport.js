@@ -24,7 +24,7 @@ passport.use(
     },
     function(email, password, done) {
       dbActions
-        .getUserFromEmail(email, true)
+        .getUserFromEmail(email, /* withPassword */ true)
         .then(user => {
           if (!user) {
             return done(null, false, { message: "Incorrect username." });
