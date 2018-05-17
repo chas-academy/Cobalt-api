@@ -16,10 +16,17 @@ const Workspace = require("../models/Workspace");
 
 /* TODO: Test if this actually throws an error */
 const getUserFromEmail = (email, withPassword = false) => {
-  return User.findOne({ email })
-    .select(withPassword && "+password")
-    .then(user => user)
-    .catch(err => err);
+  return new Promise((resolve, reject) => {
+    return User.findOne({ email })
+      .select(withPassword && "+password")
+      .exec((err, user) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(user);
+      });
+  });
 };
 
 /* TODO: Test if this actually throws an error */
@@ -71,6 +78,18 @@ const createUser = userData => {
         return resolve(user);
       }
     );
+  });
+};
+
+const deleteUser = (...args) => {
+  return new Promise((resolve, reject) => {
+    return User.findOneAndRemove(...args, (err, user) => {
+      if (err) {
+        return reject(err);
+      }
+
+      return resolve(user);
+    });
   });
 };
 
@@ -269,11 +288,6 @@ const getPresentationAuthor = sessionId =>
       });
   });
 
-const createNewPresentation = asyncPipe(
-  doesNotExceedSimultaneousPresentations,
-  createPresentation
-);
-
 export {
   getUserFromEmail,
   getUserFromId,
@@ -282,8 +296,8 @@ export {
   createWorkspace,
   createPresentation,
   getPersonalWorkspace,
-  createNewPresentation,
   deletePresentationItem,
+  deleteUser,
   removePresentationRef,
   savePresentationValues,
   getPresentation,
