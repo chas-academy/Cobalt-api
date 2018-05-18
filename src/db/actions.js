@@ -380,6 +380,21 @@ const getPresentation = id =>
     });
   });
 
+const getPresentationBySessionId = sessionId =>
+  new Promise((resolve, reject) => {
+    return Presentation.findOne(
+      { sessionId: sessionId },
+      (err, presentation) => {
+        if (err) {
+          return reject(err);
+        }
+
+        console.log(presentation);
+        return resolve(presentation);
+      }
+    );
+  });
+
 const endPresentation = (id, attendees) =>
   new Promise((resolve, reject) => {
     return Presentation.findByIdAndUpdate(
@@ -425,6 +440,7 @@ export {
   removePresentationRef,
   savePresentationValues,
   getPresentation,
+  getPresentationBySessionId,
   getPresentationAuthor,
   endPresentation,
   addWorkspaceToUser,

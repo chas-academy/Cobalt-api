@@ -152,4 +152,33 @@ router.delete("/:presentationId", (req, res) => {
     });
 });
 
+router.get("/:sessionId", (req, res) => {
+  const { sessionId } = req.params;
+
+  dbActions
+    .getPresentationBySessionId(sessionId)
+    .then(presentation => {
+      return res.status(200).json({
+        success: true,
+        presentation: presentation,
+        message: {
+          type: "success",
+          title: "Session received",
+          body: "Session was received"
+        }
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      return res.status(500).json({
+        success: false,
+        message: {
+          type: "warning",
+          title: "Session not found",
+          body: "Couldn't find a session with that id."
+        }
+      });
+    });
+});
+
 export default WrappedSessionController;
