@@ -125,7 +125,7 @@ const createWorkspace = ({ _id: userId }, name = "Personal", type = "Personal") 
         members: [userId],
         subscription: {
           type: type,
-          price: "$29.99",
+          price: type === 'Personal' ? "FREE" : type === 'Business' ? '$49.99': type === 'Enterprise' ? '$79.99' : '$99.99',
           dateAdded: now,
           expirationDate: oneMonthFromNow
         }
