@@ -82,10 +82,10 @@ router.get("/info/:workspaceId", (req, res) => {
 
 // Create
 router.post("/", (req, res) => {
-  const { name } = req.body;
+  const { name, type } = req.body;
 
   dbActions
-  .createWorkspace(req.user, name)
+  .createWorkspace(req.user, name, type)
     .then(workspace => {
       dbActions.addWorkspaceToUser(Object.assign({}, {
         owner: req.user._id,
