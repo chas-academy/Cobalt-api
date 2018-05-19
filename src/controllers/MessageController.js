@@ -1,35 +1,12 @@
 import express from "express";
-import { nodemailer } from 'nodemailer';
+const sgMail = require('@sendgrid/mail');
 
-const sendMail = ({from, to, subject, body}) => {
-  let transporter = nodeMailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: {
-      user: 'xxx@xx.com',
-      pass: 'xxxx'
-    }
-  });
-
-  let mailOptions = {
-    from,
-    to,
-    subject,
-    text,
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-        return console.log(error);
-    }
-    
-    console.log('Message %s sent: %s', info.messageId, info.response);
-        res.render('index');
-    });
-  });
-
+const sendMail = (message) => {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);;
+  sgMail.send(message)
+    console.log(message)
 }
+
 
 const router = express.Router();
 
@@ -65,12 +42,14 @@ router.post("/", (req, res) => {
     message: message,
   });
 
+  const text = `Email: ${email}\nName: ${name}\nMessage: ${message}`;
+
   sendMail({
     from: '"Cobalt" <no-reply@feed.io>',
-    to: email,
+    to: process.env.MESSAGE_RECEIVER_EMAIL,
     subject: 'Email from '+name,
-    text: message,
-  )
+    text,
+  });
 });
 
 export default router;
