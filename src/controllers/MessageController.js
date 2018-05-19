@@ -20,7 +20,7 @@ router.post("/", (req, res) => {
   ]
 
   const errors = data.reduce((acc, [key, value]) => {
-    if (value && value !== "bobs") {
+    if (value) {
       return acc
     }
 
