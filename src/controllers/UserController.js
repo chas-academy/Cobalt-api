@@ -91,7 +91,7 @@ router.put("/", (req, res) => {
       res.status(500).json({
         success: false,
         message: {
-          type: "error",
+          type: "danger",
           title: "Something went wrong",
           body: "Could not update userinfo"
         }
@@ -115,7 +115,7 @@ router.post("/avatar", upload.single("file"), (req, res) => {
           message: {
             type: "success",
             title: "Success",
-            body: "You have successfully updated your info"
+            body: "You have successfully updated your avatar picture"
           }
         });
       })
@@ -123,9 +123,9 @@ router.post("/avatar", upload.single("file"), (req, res) => {
         res.status(500).json({
           success: false,
           message: {
-            type: "error",
+            type: "danger",
             title: "Something went wrong",
-            body: "Could not update userinfo"
+            body: "Could not update avatar"
           }
         })
       );
