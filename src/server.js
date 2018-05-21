@@ -71,8 +71,7 @@ import {
   makeOnAttendeePayload,
   makeOnPresenterPayload,
   makeOnPresenterSavePolling,
-  makeOnDisconnectHandler,
-  makeOnLikeEvent
+  makeOnDisconnectHandler
 } from "./socket/onSocketActions";
 
 const onJoinSession = makeJoinSessionHandler(io, presentations, socketMethods);
@@ -94,7 +93,6 @@ const onPresenterSavePolling = makeOnPresenterSavePolling(
   dbActions
 );
 const onDisconnect = makeOnDisconnectHandler(io, presentations, socketMethods);
-const onLikeEvent = makeOnLikeEvent(io, presentations);
 
 /* General client connection */
 io.on("connection", socket => {
@@ -103,7 +101,6 @@ io.on("connection", socket => {
   socket.on("presenterPayload", onPresenterPayload);
   socket.on("presenterRequestsSave", onPresenterSavePolling);
   socket.on("disconnecting", onDisconnect);
-  socket.on("attendeeLike", onLikeEvent);
 });
 
 /* Start */
