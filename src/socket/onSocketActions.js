@@ -31,6 +31,16 @@ export const makeJoinSessionHandler = (io, presentations, socketMethods) =>
     io.sockets.in(sessionId).emit("updateHost", presentations[sessionId].data);
   };
 
+/* Like Event */
+export const makeOnLikeEvent = (io, presentations) =>
+  function onLikeEvent({ session, payload }) {
+    const socket = this;
+
+    console.log("attendeeLike", session, payload);
+
+    io.sockets.in(session).emit("sendLike", presentations[session].data);
+  };
+
 /* Attendee Payload */
 export const makeOnAttendeePayload = (io, presentations, socketMethods) =>
   function onAttendeePayload({ session, payload }) {
