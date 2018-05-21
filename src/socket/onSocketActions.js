@@ -65,6 +65,13 @@ export const makeOnAttendeePayload = (io, presentations, socketMethods) =>
     /* Update the attendees engagement value */
     socketMethods.updateAttendee(session, socket.id, payload);
 
+    /* Update number of impressions & likes*/
+    if (payload.type && payload.type === "like") {
+      presentations[session].data.likes++;
+    }
+
+    presentations[session].data.impressions++;
+
     const newData = Object.assign(
       {},
       socketMethods.calculateAverageValue(session),
