@@ -292,6 +292,7 @@ const removePresentationRef = presentation => {
     return Workspace.findOneAndUpdate(
       { presentations: presentation._id },
       { $pull: { presentations: presentation._id } },
+      { new: true },
       (err, workspace) => {
         if (err) {
           return reject(err);
