@@ -12,7 +12,15 @@ const presentationSchema = mongoose.Schema(
     attendees: { type: String, default: 0 },
 
     /* TODO: split these into a sections array */
-    data: [{ timeStamp: String, value: Object }]
+    data: [
+      {
+        timeStamp: String,
+        value: Object,
+        attendees: String,
+        likes: Number,
+        impressions: Number
+      }
+    ]
   },
   { minimize: false }
 );
