@@ -18,14 +18,14 @@ const Workspace = require("../models/Workspace");
 const getUserFromEmail = (email, withPassword = false) => {
   return new Promise((resolve, reject) => {
     return User.findOne({ email })
-    .select(withPassword && "+password")
-    .exec((err, user) => {
-      if (err) {
-        return reject(err)
-      }
+      .select(withPassword && "+password")
+      .exec((err, user) => {
+        if (err) {
+          return reject(err);
+        }
 
-      return resolve(user)
-    })
+        return resolve(user);
+      });
   });
 };
 
@@ -116,7 +116,6 @@ const getWorkspaceMembers = (memberIds) => {
 const createWorkspace = ({ _id: userId }, name = "Personal", type = "Personal") => {
   const now = new Date();
   let oneMonthFromNow = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
-
   return new Promise((resolve, reject) => {
     return Workspace.create(
       {
@@ -330,6 +329,18 @@ const doesNotExceedSimultaneousPresentations = obj =>
     resolve(obj);
   });
 
+const deleteUser = (...args) => {
+  return new Promise((resolve, reject) => {
+    return User.findOneAndRemove(...args, (err, user) => {
+      if (err) {
+        return reject(err);
+      }
+
+      return resolve(user);
+    });
+  });
+};
+
 const savePresentationValues = obj =>
   new Promise((resolve, reject) => {
     const { timeStamp, value, sessionId, attendees } = obj.payload;
@@ -401,11 +412,6 @@ const getPresentationAuthor = sessionId =>
       });
   });
 
-const createNewPresentation = asyncPipe(
-  doesNotExceedSimultaneousPresentations,
-  createPresentation
-);
-
 export {
   getUserFromEmail,
   getUserFromId,
@@ -414,8 +420,8 @@ export {
   createWorkspace,
   createPresentation,
   getPersonalWorkspace,
-  createNewPresentation,
   deletePresentationItem,
+  deleteUser,
   removePresentationRef,
   savePresentationValues,
   getPresentation,
