@@ -3,6 +3,12 @@ import mongoose from "mongoose";
 
 import { DATABASE_CONNECTION } from "../config/config";
 
+// Cloudinary
+import multer from "multer";
+import cloudinary from "cloudinary";
+import express from "express";
+const app = express();
+
 mongoose.connect(DATABASE_CONNECTION);
 const db = mongoose.connection;
 
@@ -77,6 +83,42 @@ const updateUser = (id, userData) => {
   });
 };
 
+const updateAvatar = (data, userId) => {
+  return new Promise((resolve, reject) => {
+    return User.findByIdAndUpdate(
+      userId,
+      {
+        avatar: data
+      },
+      {
+        new: true
+      },
+      (err, user) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(user);
+      }
+    );
+  });
+};
+
+const storeAvatarCloudinary = (req, res) => {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream(result => {
+        return resolve(result.url);
+      })
+      .end(req.file.buffer);
+  });
+};
+
 const createUser = userData => {
   return new Promise((resolve, reject) => {
     return User.create(
@@ -95,41 +137,51 @@ const createUser = userData => {
   });
 };
 
-const getWorkspaces = (workspaceIds) => {
+const getWorkspaces = workspaceIds => {
   return new Promise((resolve, reject) => {
     return Workspace.find(
-    {
-      _id: { $in: workspaceIds }
-    },
-    (err, workspaces) => {
-      if(err) {
-        return reject(err);
+      {
+        _id: { $in: workspaceIds }
+      },
+      (err, workspaces) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(workspaces);
       }
+    );
+  });
+};
 
-      return resolve(workspaces)
-    }
-  )})
-}
-
-const getWorkspaceMembers = (memberIds) => {
+const getWorkspaceMembers = memberIds => {
   return new Promise((resolve, reject) => {
     return User.find(
-    {
-      _id: { $in: memberIds }
-    },
-    (err, users) => {
-      if(err) {
-        return reject(err);
+      {
+        _id: { $in: memberIds }
+      },
+      (err, users) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(users);
       }
+    );
+  });
+};
 
-      return resolve(users)
-    }
-  )})
-}
-
-const createWorkspace = ({ _id: userId }, name = "Personal", type = "Personal") => {
+const createWorkspace = (
+  { _id: userId },
+  name = "Personal",
+  type = "Personal"
+) => {
   const now = new Date();
-  let oneMonthFromNow = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
+  let oneMonthFromNow = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    now.getDate()
+  );
   return new Promise((resolve, reject) => {
     return Workspace.create(
       {
@@ -138,7 +190,14 @@ const createWorkspace = ({ _id: userId }, name = "Personal", type = "Personal") 
         members: [userId],
         subscription: {
           type: type,
-          price: type === 'Personal' ? "FREE" : type === 'Business' ? '$49.99': type === 'Enterprise' ? '$79.99' : '$99.99',
+          price:
+            type === "Personal"
+              ? "FREE"
+              : type === "Business"
+                ? "$49.99"
+                : type === "Enterprise"
+                  ? "$79.99"
+                  : "$99.99",
           dateAdded: now,
           expirationDate: oneMonthFromNow
         }
@@ -154,85 +213,83 @@ const createWorkspace = ({ _id: userId }, name = "Personal", type = "Personal") 
   });
 };
 
-const addUserToWorkspace = ({_id: userId}, workspaceId) => {
+const addUserToWorkspace = ({ _id: userId }, workspaceId) => {
   return new Promise((resolve, reject) => {
     Workspace.findByIdAndUpdate(
       workspaceId,
       {
-        $push: { members: userId}
+        $push: { members: userId }
       },
       {
-        "new": true
+        new: true
       },
       (err, workspace) => {
         if (err) {
-          return reject(err)
+          return reject(err);
         }
-        
-        return resolve(workspace)
-      }
-    )
-  })
-}
 
-const workspaceHasUser = ({_id: userId}, workspaceId) => {
+        return resolve(workspace);
+      }
+    );
+  });
+};
+
+const workspaceHasUser = ({ _id: userId }, workspaceId) => {
   return new Promise((resolve, reject) => {
     Workspace.findById(
       workspaceId,
       {
-        members: { $elemMatch: { $eq: userId }}
+        members: { $elemMatch: { $eq: userId } }
       },
       (err, success) => {
         if (err) {
-          return reject(err)
+          return reject(err);
         }
 
-        return resolve(Boolean(success.members.length))
-        
+        return resolve(Boolean(success.members.length));
       }
-    )
-  })
-}
+    );
+  });
+};
 
 const removeUserFromWorkspace = (userId, workspaceId) => {
   return new Promise((resolve, reject) => {
     Workspace.findByIdAndUpdate(
       workspaceId,
       {
-        $pull: { members: userId}
+        $pull: { members: userId }
       },
       {
-        "new": true
+        new: true
       },
       (err, workspace) => {
         if (err) {
-          return reject(err)
+          return reject(err);
         }
 
-        return resolve(workspace)
+        return resolve(workspace);
       }
-    )
-  })
-}
+    );
+  });
+};
 
 const removeWorkspaceFromUser = (userId, workspaceId) => {
   return new Promise((resolve, reject) => {
     User.findByIdAndUpdate(
       userId,
       {
-        $pull: { workspaces: workspaceId}
+        $pull: { workspaces: workspaceId }
       },
       (err, user) => {
         if (err) {
-          return reject(err)
+          return reject(err);
         }
 
-        return resolve(user)
-      })
-  })
-}
-
-
+        return resolve(user);
+      }
+    );
+  });
+};
 
 const addWorkspaceToUser = ({ owner, _id: workspaceId }) => {
   return new Promise((resolve, reject) => {
@@ -245,7 +302,7 @@ const addWorkspaceToUser = ({ owner, _id: workspaceId }) => {
         new: true
       },
       (err, user) => {
-        console.log(user)
+        console.log(user);
         if (err) {
           return reject(err);
         }
@@ -442,5 +499,7 @@ export {
   getPresentationAuthor,
   endPresentation,
   addWorkspaceToUser,
-  updateUser
+  updateUser,
+  updateAvatar,
+  storeAvatarCloudinary
 };

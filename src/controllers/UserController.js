@@ -4,6 +4,10 @@ import * as dbActions from "../db/actions";
 
 import { asyncPipe } from "../utils/fp";
 
+// Cloudinary
+import multer from "multer";
+import cloudinary from "cloudinary";
+
 const router = express.Router();
 
 // Read
@@ -70,9 +74,6 @@ router.put("/", (req, res) => {
   const data = req.body;
   const id = req.user.id;
 
-  // Middleware for avatar
-  console.log(data);
-
   dbActions
     .updateUser(id, data)
     .then(user => {
@@ -96,6 +97,39 @@ router.put("/", (req, res) => {
         }
       })
     );
+});
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+router.post("/avatar", upload.single("file"), (req, res) => {
+  const file = req.file;
+  const { _id } = req.user;
+  dbActions.storeAvatarCloudinary(req, res).then(fileUrl => {
+    dbActions
+      .updateAvatar(fileUrl, _id)
+      .then(user => {
+        res.status(200).json({
+          success: true,
+          user,
+          message: {
+            type: "success",
+            title: "Success",
+            body: "You have successfully updated your info"
+          }
+        });
+      })
+      .catch(err =>
+        res.status(500).json({
+          success: false,
+          message: {
+            type: "error",
+            title: "Something went wrong",
+            body: "Could not update userinfo"
+          }
+        })
+      );
+  });
 });
 
 export default router;
