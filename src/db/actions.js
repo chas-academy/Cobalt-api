@@ -343,7 +343,14 @@ const deleteUser = (...args) => {
 
 const savePresentationValues = obj =>
   new Promise((resolve, reject) => {
-    const { timeStamp, value, sessionId, attendees } = obj.payload;
+    const {
+      timeStamp,
+      value,
+      sessionId,
+      attendees,
+      likes,
+      impressions
+    } = obj.payload;
 
     console.log("inaction", obj.payload);
 
@@ -356,7 +363,9 @@ const savePresentationValues = obj =>
           data: {
             timeStamp: timeStamp,
             value: value,
-            attendees: attendees
+            attendees: attendees,
+            impressions: impressions,
+            likes: likes
           }
         }
       },
