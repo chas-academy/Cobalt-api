@@ -70,6 +70,9 @@ router.put("/", (req, res) => {
   const data = req.body;
   const id = req.user.id;
 
+  // Middleware for avatar
+  console.log(data);
+
   dbActions
     .updateUser(id, data)
     .then(user => {
