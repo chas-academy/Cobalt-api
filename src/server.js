@@ -52,6 +52,7 @@ app.use(passport.session());
 import UserController from "./controllers/UserController";
 import AuthController from "./controllers/AuthController";
 import SessionController from "./controllers/SessionController";
+import WorkspaceController from "./controllers/WorkspaceController";
 
 /* Routes */
 app.get("/", (req, res) => res.send("Cobalt API"));
@@ -64,6 +65,7 @@ const socketMethods = SocketMethodsFactory(io, presentations);
 app.use("/api/user", UserController);
 app.use("/api/auth", AuthController);
 app.use("/api/session", SessionController(socketMethods));
+app.use("/api/workspace", WorkspaceController);
 
 /* Socket Handling */
 import {
