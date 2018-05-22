@@ -132,6 +132,7 @@ router.delete("/:presentationId", (req, res) => {
     .then(presentation => {
       return res.status(200).json({
         success: true,
+        presentation,
         message: {
           type: "success",
           title: "Session deleted",
