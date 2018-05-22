@@ -11,7 +11,7 @@ import cloudinary from "cloudinary";
 const router = express.Router();
 
 // Read
-router.get("/:userId", (req, res) => {
+router.get("/", (req, res) => {
   const { _id } = req.user;
 
   dbActions

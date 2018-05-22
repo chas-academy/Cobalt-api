@@ -415,7 +415,15 @@ const deleteUser = (...args) => {
 
 const savePresentationValues = obj =>
   new Promise((resolve, reject) => {
-    const { timeStamp, value, sessionId, attendees } = obj.payload;
+    const {
+      timeStamp,
+      currentTime,
+      value,
+      sessionId,
+      attendees,
+      likes,
+      impressions
+    } = obj.payload;
 
     console.log("inaction", obj.payload);
 
@@ -427,8 +435,11 @@ const savePresentationValues = obj =>
         $push: {
           data: {
             timeStamp: timeStamp,
+            currentTime: currentTime,
             value: value,
-            attendees: attendees
+            attendees: attendees,
+            impressions: impressions,
+            likes: likes
           }
         }
       },
@@ -452,13 +463,29 @@ const getPresentation = id =>
     });
   });
 
-const endPresentation = (id, attendees) =>
+const getPresentationBySessionId = sessionId =>
+  new Promise((resolve, reject) => {
+    return Presentation.findOne(
+      { sessionId: sessionId },
+      (err, presentation) => {
+        if (err) {
+          return reject(err);
+        }
+
+        console.log(presentation);
+        return resolve(presentation);
+      }
+    );
+  });
+
+const endPresentation = (id, attendees, duration) =>
   new Promise((resolve, reject) => {
     return Presentation.findByIdAndUpdate(
       id,
       {
         hasEnded: true,
-        attendees: attendees
+        attendees: attendees,
+        duration: duration
       },
       { new: true },
       (err, presentation) => {
@@ -497,6 +524,7 @@ export {
   removePresentationRef,
   savePresentationValues,
   getPresentation,
+  getPresentationBySessionId,
   getPresentationAuthor,
   endPresentation,
   addWorkspaceToUser,
