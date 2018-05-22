@@ -98,7 +98,7 @@ const onPresenterSavePolling = makeOnPresenterSavePolling(
   dbActions
 );
 const onDisconnect = makeOnDisconnectHandler(io, presentations, socketMethods);
-const onLikeEvent = makeOnLikeEvent(io, presentations);
+const onLikeEvent = makeOnLikeEvent(io, presentations, socketMethods);
 
 /* General client connection */
 io.on("connection", socket => {
