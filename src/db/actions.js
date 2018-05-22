@@ -532,5 +532,9 @@ export {
   updateAvatar,
   storeAvatarCloudinary,
   getWorkspaces,
-  getWorkspaceMembers
+  getWorkspaceMembers,
+  workspaceHasUser,
+  addUserToWorkspace,
+  removeUserFromWorkspace,
+  removeWorkspaceFromUser
 };
