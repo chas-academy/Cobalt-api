@@ -127,7 +127,8 @@ export const makeOnPresenterPayload = (
       dbActions
         .endPresentation(
           presentations[payload.session].presentationId,
-          numOfAttendees
+          numOfAttendees,
+          payload.payload.status.time
         )
         .then(console.log)
         .catch(console.error);
