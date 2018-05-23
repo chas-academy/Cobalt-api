@@ -125,7 +125,10 @@ const createUser = userData => {
       {
         email: userData.email,
         name: userData.name,
-        password: userData.password
+        password: userData.password,
+        avatar: `https://api.adorable.io/avatars/285/${
+          userData.name
+        }@adorable.png`
       },
       (err, user) => {
         if (err) {
