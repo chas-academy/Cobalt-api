@@ -13,13 +13,12 @@ import * as dbActions from "../db/actions";
 const WrappedSessionController = socketMethods => (
   router.post("/", requireLogin, async (req, res) => {
     const sessionId = shortid.generate();
-    const { name, description, settings } = req.body;
+
+    const { name, description, settings, workspace } = req.body;
 
     dbActions
       .createPresentation({
-        workspaceId: await dbActions
-          .getPersonalWorkspace(req.user._id)
-          .then(workspace => workspace._id),
+        workspaceId: workspace,
         sessionId,
         userId: req.user._id,
         name,
@@ -132,10 +131,40 @@ router.delete("/:presentationId", (req, res) => {
     .then(presentation => {
       return res.status(200).json({
         success: true,
+        presentation,
         message: {
           type: "success",
           title: "Session deleted",
           body: "Session was successfully deleted"
+        }
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      return res.status(500).json({
+        success: false,
+        message: {
+          type: "warning",
+          title: "Session not found",
+          body: "Couldn't find a session with that id."
+        }
+      });
+    });
+});
+
+router.get("/:sessionId", (req, res) => {
+  const { sessionId } = req.params;
+
+  dbActions
+    .getPresentationBySessionId(sessionId)
+    .then(presentation => {
+      return res.status(200).json({
+        success: true,
+        presentation: presentation,
+        message: {
+          type: "success",
+          title: "Session received",
+          body: "Session was received"
         }
       });
     })

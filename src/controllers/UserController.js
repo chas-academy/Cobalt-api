@@ -4,10 +4,14 @@ import * as dbActions from "../db/actions";
 
 import { asyncPipe } from "../utils/fp";
 
+// Cloudinary
+import multer from "multer";
+import cloudinary from "cloudinary";
+
 const router = express.Router();
 
 // Read
-router.get("/:userId", (req, res) => {
+router.get("/", (req, res) => {
   const { _id } = req.user;
 
   dbActions
@@ -63,6 +67,69 @@ router.post("/", (req, res) => {
         }
       })
     );
+});
+
+// Update User
+router.put("/", (req, res) => {
+  const data = req.body;
+  const id = req.user.id;
+
+  dbActions
+    .updateUser(id, data)
+    .then(user => {
+      res.status(200).json({
+        success: true,
+        user,
+        message: {
+          type: "success",
+          title: "Success",
+          body: "You have successfully updated your info"
+        }
+      });
+    })
+    .catch(err =>
+      res.status(500).json({
+        success: false,
+        message: {
+          type: "danger",
+          title: "Something went wrong",
+          body: "Could not update userinfo"
+        }
+      })
+    );
+});
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+router.post("/avatar", upload.single("file"), (req, res) => {
+  const file = req.file;
+  const { _id } = req.user;
+  dbActions.storeAvatarCloudinary(req, res).then(fileUrl => {
+    dbActions
+      .updateAvatar(fileUrl, _id)
+      .then(user => {
+        res.status(200).json({
+          success: true,
+          user,
+          message: {
+            type: "success",
+            title: "Success",
+            body: "You have successfully updated your avatar picture"
+          }
+        });
+      })
+      .catch(err =>
+        res.status(500).json({
+          success: false,
+          message: {
+            type: "danger",
+            title: "Something went wrong",
+            body: "Could not update avatar"
+          }
+        })
+      );
+  });
 });
 
 export default router;

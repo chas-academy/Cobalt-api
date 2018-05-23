@@ -27,7 +27,8 @@ app.use(
   cors({
     origin: process.env.ALLOW_ORIGIN,
     credentials: true,
-    allowedHeaders: "X-Requested-With, Content-Type, Authorization, If-None-Match",
+    allowedHeaders:
+      "X-Requested-With, Content-Type, Authorization, If-None-Match",
     methods: "GET, POST, PATCH, PUT, DELETE, OPTIONS"
   })
 );
@@ -53,6 +54,7 @@ import UserController from "./controllers/UserController";
 import AuthController from "./controllers/AuthController";
 import SessionController from "./controllers/SessionController";
 import MessageController from "./controllers/MessageController";
+import WorkspaceController from "./controllers/WorkspaceController";
 
 /* Routes */
 app.get("/", (req, res) => res.send("Cobalt API"));
@@ -66,6 +68,8 @@ app.use("/api/user", UserController);
 app.use("/api/auth", AuthController);
 app.use("/api/session", SessionController(socketMethods));
 app.use("/api/message", MessageController);
+app.use("/api/workspace", WorkspaceController);
+app.use("/api/upload", UserController);
 
 /* Socket Handling */
 import {
@@ -73,7 +77,8 @@ import {
   makeOnAttendeePayload,
   makeOnPresenterPayload,
   makeOnPresenterSavePolling,
-  makeOnDisconnectHandler
+  makeOnDisconnectHandler,
+  makeOnLikeEvent
 } from "./socket/onSocketActions";
 
 const onJoinSession = makeJoinSessionHandler(io, presentations, socketMethods);
@@ -95,6 +100,7 @@ const onPresenterSavePolling = makeOnPresenterSavePolling(
   dbActions
 );
 const onDisconnect = makeOnDisconnectHandler(io, presentations, socketMethods);
+const onLikeEvent = makeOnLikeEvent(io, presentations, socketMethods);
 
 /* General client connection */
 io.on("connection", socket => {
@@ -103,6 +109,7 @@ io.on("connection", socket => {
   socket.on("presenterPayload", onPresenterPayload);
   socket.on("presenterRequestsSave", onPresenterSavePolling);
   socket.on("disconnecting", onDisconnect);
+  socket.on("attendeeLike", onLikeEvent);
 });
 
 /* Start */

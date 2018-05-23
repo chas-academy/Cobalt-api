@@ -31,6 +31,32 @@ export const makeJoinSessionHandler = (io, presentations, socketMethods) =>
     io.sockets.in(sessionId).emit("updateHost", presentations[sessionId].data);
   };
 
+/* Like Event */
+export const makeOnLikeEvent = (io, presentations, socketMethods) =>
+  function onLikeEvent({ session, payload }) {
+    const socket = this;
+
+    if (
+      !socketMethods.sessionExists(session) ||
+      socketMethods.sessionHasEnded(session)
+    ) {
+      socket.disconnect();
+      return;
+    }
+
+    if (
+      presentations[session].data.status.isPaused ||
+      !presentations[session].data.status.hasStarted
+    )
+      return;
+
+    console.log("attendeeLike", session, payload);
+    presentations[session].data.likes++;
+
+    io.sockets.in(session).emit("sendLike", presentations[session].data);
+    io.sockets.in(session).emit("updateHost", presentations[session].data);
+  };
+
 /* Attendee Payload */
 export const makeOnAttendeePayload = (io, presentations, socketMethods) =>
   function onAttendeePayload({ session, payload }) {
@@ -55,6 +81,9 @@ export const makeOnAttendeePayload = (io, presentations, socketMethods) =>
     /* Update the attendees engagement value */
     socketMethods.updateAttendee(session, socket.id, payload);
 
+    /* Update number of impressions*/
+    presentations[session].data.impressions++;
+
     const newData = Object.assign(
       {},
       socketMethods.calculateAverageValue(session),
@@ -76,7 +105,6 @@ export const makeOnPresenterPayload = (
   dbActions
 ) =>
   function onPresenterPayload(payload) {
-    console.log("presenterPayload", payload);
     const socket = this;
 
     if (socket.id !== presentations[payload.session].owner) return;
@@ -110,7 +138,8 @@ export const makeOnPresenterPayload = (
       dbActions
         .endPresentation(
           presentations[payload.session].presentationId,
-          numOfAttendees
+          numOfAttendees,
+          payload.payload.status.time
         )
         .then(console.log)
         .catch(console.error);
