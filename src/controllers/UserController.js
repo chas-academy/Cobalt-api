@@ -87,16 +87,16 @@ router.put("/", (req, res) => {
         }
       });
     })
-    .catch(err =>
+    .catch(err => {
       res.status(500).json({
         success: false,
         message: {
           type: "danger",
           title: "Something went wrong",
-          body: "Could not update userinfo"
+          body: "Could not update user info, please try again!"
         }
-      })
-    );
+      });
+    });
 });
 
 const storage = multer.memoryStorage();

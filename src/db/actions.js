@@ -71,14 +71,20 @@ const getUserData = id => {
 /* Update Userinfo */
 const updateUser = (id, userData) => {
   return new Promise((resolve, reject) => {
-    return User.findById(id, (err, user) => {
-      if (err) {
-        return reject(err);
-      }
-      user.set(userData);
-      user.save();
+    User.findOne({ email: userData.email }, (err, user) => {
+      if (user || err) {
+        return reject(err || "Email already in use.");
+      } else {
+        return User.findById(id, (err, user) => {
+          if (err) {
+            return reject(err);
+          }
+          user.set(userData);
+          user.save();
 
-      return resolve(user);
+          return resolve(user);
+        });
+      }
     });
   });
 };
