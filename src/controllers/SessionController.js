@@ -13,13 +13,12 @@ import * as dbActions from "../db/actions";
 const WrappedSessionController = socketMethods => (
   router.post("/", requireLogin, async (req, res) => {
     const sessionId = shortid.generate();
-    const { name, description, settings } = req.body;
+
+    const { name, description, settings, workspace } = req.body;
 
     dbActions
       .createPresentation({
-        workspaceId: await dbActions
-          .getPersonalWorkspace(req.user._id)
-          .then(workspace => workspace._id),
+        workspaceId: workspace,
         sessionId,
         userId: req.user._id,
         name,
