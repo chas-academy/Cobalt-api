@@ -53,6 +53,7 @@ app.use(passport.session());
 import UserController from "./controllers/UserController";
 import AuthController from "./controllers/AuthController";
 import SessionController from "./controllers/SessionController";
+import MessageController from "./controllers/MessageController";
 import WorkspaceController from "./controllers/WorkspaceController";
 
 /* Routes */
@@ -66,6 +67,7 @@ const socketMethods = SocketMethodsFactory(io, presentations);
 app.use("/api/user", UserController);
 app.use("/api/auth", AuthController);
 app.use("/api/session", SessionController(socketMethods));
+app.use("/api/message", MessageController);
 app.use("/api/workspace", WorkspaceController);
 app.use("/api/upload", UserController);
 
