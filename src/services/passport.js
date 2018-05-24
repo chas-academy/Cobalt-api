@@ -26,15 +26,23 @@ passport.use(
       dbActions
         .getUserFromEmail(email, /* withPassword */ true)
         .then(user => {
+          console.log("user: ", user);
           if (!user) {
-            return done(null, false, { message: "Incorrect username." });
+            return done(null, false, {
+              type: "danger",
+              message: "Incorrect username."
+            });
           }
 
           if (!user.validPassword(password, user.password)) {
-            return done(null, false, { message: "Incorrect password." });
+            console.log("Incorrect password");
+            return done(null, false, {
+              type: "danger",
+              message: "Incorrect password."
+            });
           }
 
-          return done(null, user);
+          return done(null, user, { type: "success", message: "welcome" });
         })
         .catch(err => done(err));
     }

@@ -28,22 +28,33 @@ router.get("/", (req, res) => {
   });
 });
 
-router.post("/", passport.authenticate("local"), (req, res) => {
-  if (!req.user) return;
-
-  req.logIn(req.user, err => {
-    console.log("passport.logIn", err);
-  });
-
-  res.json(200, {
-    success: true,
-    user: strip(req.user.toObject(), "password"),
-    message: {
-      type: "success",
-      title: "Logged in successfully!",
-      body: `Welcome back ${req.user.name} and good luck!`
+router.post("/", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (!user) {
+      return res.json(401, {
+        success: false,
+        message: {
+          type: info.type,
+          title: info.message,
+          body: info.message
+        }
+      });
     }
-  });
+
+    req.logIn(user, err => {
+      console.log("passport.logIn", err);
+    });
+
+    res.json(200, {
+      success: true,
+      user: strip(user.toObject(), "password"),
+      message: {
+        type: "success",
+        title: "Logged in successfully!",
+        body: `Welcome back ${user.name} and good luck!`
+      }
+    });
+  })(req, res, next);
 });
 
 router.get("/logout", function(req, res) {
