@@ -127,7 +127,7 @@ const storeAvatarCloudinary = (req, res) => {
   return new Promise((resolve, reject) => {
     cloudinary.uploader
       .upload_stream(result => {
-        return resolve(result.url);
+        return resolve(result.secure_url);
       })
       .end(req.file.buffer);
   });
