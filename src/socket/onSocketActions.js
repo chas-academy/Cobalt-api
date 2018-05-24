@@ -179,6 +179,7 @@ export const makeOnDisconnectHandler = (io, presentations, socketMethods) =>
 
     // The attendees socketID
     const attendeeId = socket.id;
+
     // The attendees connected presentations
     const attendeePresentations = Object.values(
       Object.assign({}, socket.rooms)
@@ -188,6 +189,15 @@ export const makeOnDisconnectHandler = (io, presentations, socketMethods) =>
     attendeePresentations.forEach(sessionId => {
       // If the sessionId is different to the attendees own session remove it from that presentation
       if (sessionId !== attendeeId) {
+        /* If the owner of the session disconnects. Pause the session and update the clients */
+        if (presentations[sessionId].owner === attendeeId) {
+          presentations[sessionId].data.status.isPaused = true;
+          presentations[sessionId].data.status.wasDisconnected = true;
+          io.sockets
+            .in(sessionId)
+            .emit("updateClient", presentations[sessionId].data);
+        }
+
         // Remove the attendee from the attendees list
         presentations[sessionId].attendees.delete(attendeeId);
 
