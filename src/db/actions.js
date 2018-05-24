@@ -3,6 +3,12 @@ import mongoose from "mongoose";
 
 import { DATABASE_CONNECTION } from "../config/config";
 
+// Cloudinary
+import multer from "multer";
+import cloudinary from "cloudinary";
+import express from "express";
+const app = express();
+
 mongoose.connect(DATABASE_CONNECTION);
 const db = mongoose.connection;
 
@@ -62,44 +68,163 @@ const getUserData = id => {
   });
 };
 
+/* Update Userinfo */
+const updateUser = (id, userData) => {
+  return new Promise((resolve, reject) => {
+    User.findOne({ email: userData.email }, (err, user) => {
+      if (user || err) {
+        return reject(err || "Email already in use.");
+      } else {
+        return User.findById(id)
+          .populate({
+            path: "workspaces",
+            populate: {
+              path: "presentations",
+              select: "-data"
+            }
+          })
+          .exec((err, user) => {
+            if (err) {
+              return reject(err);
+            }
+            user.set(userData);
+            user.save();
+
+            return resolve(user);
+          });
+      }
+    });
+  });
+};
+
+const updateAvatar = (data, userId) => {
+  return new Promise((resolve, reject) => {
+    return User.findByIdAndUpdate(
+      userId,
+      {
+        avatar: data
+      },
+      {
+        new: true
+      }
+    )
+      .populate({
+        path: "workspaces",
+        populate: {
+          path: "presentations",
+          select: "-data"
+        }
+      })
+      .exec((err, user) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(user);
+      });
+  });
+};
+
+const storeAvatarCloudinary = (req, res) => {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream(result => {
+        return resolve(result.secure_url);
+      })
+      .end(req.file.buffer);
+  });
+};
+
 const createUser = userData => {
   return new Promise((resolve, reject) => {
     return User.create(
       {
         email: userData.email,
         name: userData.name,
-        password: userData.password
+        password: userData.password,
+        avatar: `https://api.adorable.io/avatars/285/${
+          userData.name
+        }@adorable.png`
       },
       (err, user) => {
         if (err) {
           return reject(err);
         }
-
         return resolve(user);
       }
     );
   });
 };
 
-const deleteUser = (...args) => {
+const getWorkspaces = workspaceIds => {
   return new Promise((resolve, reject) => {
-    return User.findOneAndRemove(...args, (err, user) => {
-      if (err) {
-        return reject(err);
-      }
+    return Workspace.find(
+      {
+        _id: { $in: workspaceIds }
+      },
+      (err, workspaces) => {
+        if (err) {
+          return reject(err);
+        }
 
-      return resolve(user);
-    });
+        return resolve(workspaces);
+      }
+    );
   });
 };
 
-const createWorkspace = ({ _id: userId }, name = "Personal") => {
+const getWorkspaceMembers = memberIds => {
+  return new Promise((resolve, reject) => {
+    return User.find(
+      {
+        _id: { $in: memberIds }
+      },
+      (err, users) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(users);
+      }
+    );
+  });
+};
+
+const createWorkspace = (
+  { _id: userId },
+  name = "Personal",
+  type = "Personal"
+) => {
+  const now = new Date();
+  let oneMonthFromNow = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    now.getDate()
+  );
   return new Promise((resolve, reject) => {
     return Workspace.create(
       {
         owner: userId,
         name: name,
-        members: [userId]
+        members: [userId],
+        subscription: {
+          type: type,
+          price:
+            type === "Personal"
+              ? "FREE"
+              : type === "Business"
+                ? "$49.99"
+                : type === "Enterprise"
+                  ? "$79.99"
+                  : "$99.99",
+          dateAdded: now,
+          expirationDate: oneMonthFromNow
+        }
       },
       (err, workspace) => {
         if (err) {
@@ -112,6 +237,84 @@ const createWorkspace = ({ _id: userId }, name = "Personal") => {
   });
 };
 
+const addUserToWorkspace = ({ _id: userId }, workspaceId) => {
+  return new Promise((resolve, reject) => {
+    Workspace.findByIdAndUpdate(
+      workspaceId,
+      {
+        $push: { members: userId }
+      },
+      {
+        new: true
+      },
+      (err, workspace) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(workspace);
+      }
+    );
+  });
+};
+
+const workspaceHasUser = ({ _id: userId }, workspaceId) => {
+  return new Promise((resolve, reject) => {
+    Workspace.findById(
+      workspaceId,
+      {
+        members: { $elemMatch: { $eq: userId } }
+      },
+      (err, success) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(Boolean(success.members.length));
+      }
+    );
+  });
+};
+
+const removeUserFromWorkspace = (userId, workspaceId) => {
+  return new Promise((resolve, reject) => {
+    Workspace.findByIdAndUpdate(
+      workspaceId,
+      {
+        $pull: { members: userId }
+      },
+      {
+        new: true
+      },
+      (err, workspace) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(workspace);
+      }
+    );
+  });
+};
+
+const removeWorkspaceFromUser = (userId, workspaceId) => {
+  return new Promise((resolve, reject) => {
+    User.findByIdAndUpdate(
+      userId,
+      {
+        $pull: { workspaces: workspaceId }
+      },
+      (err, user) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(user);
+      }
+    );
+  });
+};
+
 const addWorkspaceToUser = ({ owner, _id: workspaceId }) => {
   return new Promise((resolve, reject) => {
     User.findByIdAndUpdate(
@@ -119,7 +322,11 @@ const addWorkspaceToUser = ({ owner, _id: workspaceId }) => {
       {
         $push: { workspaces: workspaceId }
       },
+      {
+        new: true
+      },
       (err, user) => {
+        console.log(user);
         if (err) {
           return reject(err);
         }
@@ -180,6 +387,7 @@ const removePresentationRef = presentation => {
     return Workspace.findOneAndUpdate(
       { presentations: presentation._id },
       { $pull: { presentations: presentation._id } },
+      { new: true },
       (err, workspace) => {
         if (err) {
           return reject(err);
@@ -217,9 +425,29 @@ const doesNotExceedSimultaneousPresentations = obj =>
     resolve(obj);
   });
 
+const deleteUser = (...args) => {
+  return new Promise((resolve, reject) => {
+    return User.findOneAndRemove(...args, (err, user) => {
+      if (err) {
+        return reject(err);
+      }
+
+      return resolve(user);
+    });
+  });
+};
+
 const savePresentationValues = obj =>
   new Promise((resolve, reject) => {
-    const { timeStamp, value, sessionId, attendees } = obj.payload;
+    const {
+      timeStamp,
+      currentTime,
+      value,
+      sessionId,
+      attendees,
+      likes,
+      impressions
+    } = obj.payload;
 
     console.log("inaction", obj.payload);
 
@@ -231,8 +459,11 @@ const savePresentationValues = obj =>
         $push: {
           data: {
             timeStamp: timeStamp,
+            currentTime: currentTime,
             value: value,
-            attendees: attendees
+            attendees: attendees,
+            impressions: impressions,
+            likes: likes
           }
         }
       },
@@ -256,13 +487,29 @@ const getPresentation = id =>
     });
   });
 
-const endPresentation = (id, attendees) =>
+const getPresentationBySessionId = sessionId =>
+  new Promise((resolve, reject) => {
+    return Presentation.findOne(
+      { sessionId: sessionId },
+      (err, presentation) => {
+        if (err) {
+          return reject(err);
+        }
+
+        console.log(presentation);
+        return resolve(presentation);
+      }
+    );
+  });
+
+const endPresentation = (id, attendees, duration) =>
   new Promise((resolve, reject) => {
     return Presentation.findByIdAndUpdate(
       id,
       {
         hasEnded: true,
-        attendees: attendees
+        attendees: attendees,
+        duration: duration
       },
       { new: true },
       (err, presentation) => {
@@ -301,7 +548,17 @@ export {
   removePresentationRef,
   savePresentationValues,
   getPresentation,
+  getPresentationBySessionId,
   getPresentationAuthor,
   endPresentation,
-  addWorkspaceToUser
+  addWorkspaceToUser,
+  updateUser,
+  updateAvatar,
+  storeAvatarCloudinary,
+  getWorkspaces,
+  getWorkspaceMembers,
+  workspaceHasUser,
+  addUserToWorkspace,
+  removeUserFromWorkspace,
+  removeWorkspaceFromUser
 };

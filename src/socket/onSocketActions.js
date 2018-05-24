@@ -31,6 +31,32 @@ export const makeJoinSessionHandler = (io, presentations, socketMethods) =>
     io.sockets.in(sessionId).emit("updateHost", presentations[sessionId].data);
   };
 
+/* Like Event */
+export const makeOnLikeEvent = (io, presentations, socketMethods) =>
+  function onLikeEvent({ session, payload }) {
+    const socket = this;
+
+    if (
+      !socketMethods.sessionExists(session) ||
+      socketMethods.sessionHasEnded(session)
+    ) {
+      socket.disconnect();
+      return;
+    }
+
+    if (
+      presentations[session].data.status.isPaused ||
+      !presentations[session].data.status.hasStarted
+    )
+      return;
+
+    console.log("attendeeLike", session, payload);
+    presentations[session].data.likes++;
+
+    io.sockets.in(session).emit("sendLike", presentations[session].data);
+    io.sockets.in(session).emit("updateHost", presentations[session].data);
+  };
+
 /* Attendee Payload */
 export const makeOnAttendeePayload = (io, presentations, socketMethods) =>
   function onAttendeePayload({ session, payload }) {
@@ -55,6 +81,9 @@ export const makeOnAttendeePayload = (io, presentations, socketMethods) =>
     /* Update the attendees engagement value */
     socketMethods.updateAttendee(session, socket.id, payload);
 
+    /* Update number of impressions*/
+    presentations[session].data.impressions++;
+
     const newData = Object.assign(
       {},
       socketMethods.calculateAverageValue(session),
@@ -76,7 +105,6 @@ export const makeOnPresenterPayload = (
   dbActions
 ) =>
   function onPresenterPayload(payload) {
-    console.log("presenterPayload", payload);
     const socket = this;
 
     if (socket.id !== presentations[payload.session].owner) return;
@@ -110,7 +138,8 @@ export const makeOnPresenterPayload = (
       dbActions
         .endPresentation(
           presentations[payload.session].presentationId,
-          numOfAttendees
+          numOfAttendees,
+          payload.payload.status.time
         )
         .then(console.log)
         .catch(console.error);
@@ -150,6 +179,7 @@ export const makeOnDisconnectHandler = (io, presentations, socketMethods) =>
 
     // The attendees socketID
     const attendeeId = socket.id;
+
     // The attendees connected presentations
     const attendeePresentations = Object.values(
       Object.assign({}, socket.rooms)
@@ -159,6 +189,15 @@ export const makeOnDisconnectHandler = (io, presentations, socketMethods) =>
     attendeePresentations.forEach(sessionId => {
       // If the sessionId is different to the attendees own session remove it from that presentation
       if (sessionId !== attendeeId) {
+        /* If the owner of the session disconnects. Pause the session and update the clients */
+        if (presentations[sessionId].owner === attendeeId) {
+          presentations[sessionId].data.status.isPaused = true;
+          presentations[sessionId].data.status.wasDisconnected = true;
+          io.sockets
+            .in(sessionId)
+            .emit("updateClient", presentations[sessionId].data);
+        }
+
         // Remove the attendee from the attendees list
         presentations[sessionId].attendees.delete(attendeeId);
 

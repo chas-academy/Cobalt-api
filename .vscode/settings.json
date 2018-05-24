@@ -1,0 +1,7 @@
+{
+  "prettier.useTabs": false,
+  "editor.tabSize": 2,
+  "editor.autoIndent": true,
+  "workbench.startupEditor": "newUntitledFile",
+  "editor.formatOnSave": true
+}

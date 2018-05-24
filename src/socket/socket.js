@@ -34,6 +34,8 @@ const SocketMethodsFactory = (io, presentations /* should be DB */) => {
           hasStarted: false,
           hasEnded: false,
           isPaused: false,
+          isAverage: true,
+          wasDisconnected: false,
           time: 0
         },
         engagement: {
@@ -41,6 +43,8 @@ const SocketMethodsFactory = (io, presentations /* should be DB */) => {
           positive: 50,
           negative: 50
         },
+        impressions: 0,
+        likes: 0,
         attendees: 0
       }
     });
