@@ -75,15 +75,23 @@ const updateUser = (id, userData) => {
       if (user || err) {
         return reject(err || "Email already in use.");
       } else {
-        return User.findById(id, (err, user) => {
-          if (err) {
-            return reject(err);
-          }
-          user.set(userData);
-          user.save();
+        return User.findById(id)
+          .populate({
+            path: "workspaces",
+            populate: {
+              path: "presentations",
+              select: "-data"
+            }
+          })
+          .exec((err, user) => {
+            if (err) {
+              return reject(err);
+            }
+            user.set(userData);
+            user.save();
 
-          return resolve(user);
-        });
+            return resolve(user);
+          });
       }
     });
   });
