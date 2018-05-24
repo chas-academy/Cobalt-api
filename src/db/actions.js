@@ -106,15 +106,22 @@ const updateAvatar = (data, userId) => {
       },
       {
         new: true
-      },
-      (err, user) => {
+      }
+    )
+      .populate({
+        path: "workspaces",
+        populate: {
+          path: "presentations",
+          select: "-data"
+        }
+      })
+      .exec((err, user) => {
         if (err) {
           return reject(err);
         }
 
         return resolve(user);
-      }
-    );
+      });
   });
 };
 
